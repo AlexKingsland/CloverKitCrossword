@@ -1,7 +1,7 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
 <div class="crossword-container">
-  <h2 class="crossword-title">{{ section.settings.title }}</h2>
+  <h2 class="crossword-title">{{ block.settings.title }}</h2>
 
   <div class="crossword-wrapper">
     <div class="crossword-grid" id="crossword-grid"></div>
