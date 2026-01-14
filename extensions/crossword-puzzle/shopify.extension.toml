@@ -1,0 +1,10 @@
+name = "Crossword Puzzle"
+uid = "6263fa03-49d8-1a6c-ab29-5b13f788816d73ef0967"
+type = "theme"
+description = "Add an interactive crossword puzzle to your Shopify theme"
+
+[build]
+automatically_update_urls_on_dev = true
+
+[capabilities]
+network_access = true

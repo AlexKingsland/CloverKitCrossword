@@ -1,0 +1,46 @@
+{{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
+
+<div class="crossword-container">
+  <h2 class="crossword-title">{{ section.settings.title }}</h2>
+
+  <div class="crossword-wrapper">
+    <div class="crossword-grid" id="crossword-grid"></div>
+
+    <div class="crossword-clues">
+      <div class="clues-across">
+        <h3>Across</h3>
+        <div id="across-clues"></div>
+      </div>
+
+      <div class="clues-down">
+        <h3>Down</h3>
+        <div id="down-clues"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="crossword-controls">
+    <button id="check-answers" class="btn btn-primary">Check Answers</button>
+    <button id="show-solution" class="btn btn-secondary">Show Solution</button>
+    <button id="reset-puzzle" class="btn btn-secondary">Reset</button>
+  </div>
+
+  <div id="crossword-message" class="crossword-message"></div>
+</div>
+
+{{ 'crossword-puzzle.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Crossword Puzzle",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Daily Crossword"
+    }
+  ]
+}
+{% endschema %}
