@@ -272,8 +272,21 @@ class CrosswordPuzzle {
       this.currentDirection = this.currentDirection === 'across' ? 'down' : 'across';
     }
     
-    // Find and highlight word
-    const word = this.findWordAt(row, col, this.currentDirection);
+    // Try to find word in current direction
+    let word = this.findWordAt(row, col, this.currentDirection);
+    
+    // If no word found in current direction, try opposite direction
+    if (!word) {
+      const oppositeDirection = this.currentDirection === 'across' ? 'down' : 'across';
+      word = this.findWordAt(row, col, oppositeDirection);
+      
+      // If word found in opposite direction, switch to that direction
+      if (word) {
+        this.currentDirection = oppositeDirection;
+      }
+    }
+    
+    // Highlight the word if found
     if (word) {
       this.selectedWord = word;
       this.highlightWord(word, row, col);
