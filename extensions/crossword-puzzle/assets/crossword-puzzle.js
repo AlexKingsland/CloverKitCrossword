@@ -25,6 +25,12 @@ class CrosswordPuzzle {
     this.timerInterval = null;
     this.puzzleCompleted = false;
 
+    // Word selection properties
+    this.currentDirection = 'across';
+    this.selectedWord = null;
+    this.lastClickTime = 0;
+    this.currentCell = null;
+
     // Initialize asynchronously
     this.initialize();
   }
@@ -187,6 +193,118 @@ class CrosswordPuzzle {
     container.insertBefore(banner, container.firstChild);
   }
 
+  findWordAt(row, col, direction) {
+    const gridSize = this.currentPuzzle.answers.length;
+    let cells = [];
+    
+    if (direction === 'across') {
+      // Find start of word (scan left)
+      let startCol = col;
+      while (startCol > 0 && this.currentPuzzle.answers[row][startCol - 1] !== null) {
+        startCol--;
+      }
+      
+      // Find end of word (scan right)
+      let endCol = col;
+      while (endCol < gridSize - 1 && this.currentPuzzle.answers[row][endCol + 1] !== null) {
+        endCol++;
+      }
+      
+      // Build cell list
+      for (let c = startCol; c <= endCol; c++) {
+        cells.push({ row, col: c });
+      }
+    } else {
+      // direction === 'down'
+      // Find start of word (scan up)
+      let startRow = row;
+      while (startRow > 0 && this.currentPuzzle.answers[startRow - 1][col] !== null) {
+        startRow--;
+      }
+      
+      // Find end of word (scan down)
+      let endRow = row;
+      while (endRow < gridSize - 1 && this.currentPuzzle.answers[endRow + 1][col] !== null) {
+        endRow++;
+      }
+      
+      // Build cell list
+      for (let r = startRow; r <= endRow; r++) {
+        cells.push({ row: r, col });
+      }
+    }
+    
+    return cells.length > 1 ? cells : null; // Only return if it's actually a word (>1 cell)
+  }
+
+  clearHighlights() {
+    const cells = this.gridElement.querySelectorAll('.crossword-cell');
+    cells.forEach(cell => {
+      cell.classList.remove('highlighted', 'current');
+    });
+  }
+
+  highlightWord(cells, currentRow, currentCol) {
+    this.clearHighlights();
+    const gridSize = this.currentPuzzle.answers.length;
+    
+    cells.forEach(({ row, col }) => {
+      const cellIndex = row * gridSize + col;
+      const cellElement = this.gridElement.children[cellIndex];
+      
+      if (cellElement) {
+        if (row === currentRow && col === currentCol) {
+          cellElement.classList.add('current');
+        } else {
+          cellElement.classList.add('highlighted');
+        }
+      }
+    });
+  }
+
+  handleCellClick(row, col) {
+    const now = Date.now();
+    const isDoubleClick = (now - this.lastClickTime) < 300;
+    this.lastClickTime = now;
+    
+    if (isDoubleClick && this.currentCell && this.currentCell.row === row && this.currentCell.col === col) {
+      // Double click - toggle direction
+      this.currentDirection = this.currentDirection === 'across' ? 'down' : 'across';
+    }
+    
+    // Find and highlight word
+    const word = this.findWordAt(row, col, this.currentDirection);
+    if (word) {
+      this.selectedWord = word;
+      this.highlightWord(word, row, col);
+    }
+    
+    this.currentCell = { row, col };
+    
+    // Select the text in the input for easy override
+    const input = this.getInputAt(row, col);
+    if (input && input.value) {
+      input.select();
+    }
+  }
+
+  advanceToNextCell(row, col) {
+    if (!this.selectedWord) return;
+    
+    // Find current position in selected word
+    const currentIndex = this.selectedWord.findIndex(cell => cell.row === row && cell.col === col);
+    
+    if (currentIndex >= 0 && currentIndex < this.selectedWord.length - 1) {
+      // Move to next cell in word
+      const nextCell = this.selectedWord[currentIndex + 1];
+      const nextInput = this.getInputAt(nextCell.row, nextCell.col);
+      if (nextInput) {
+        nextInput.focus();
+        this.handleCellClick(nextCell.row, nextCell.col);
+      }
+    }
+  }
+
   renderGrid() {
     this.gridElement.innerHTML = '';
     let cellCount = 0;
@@ -210,10 +328,29 @@ class CrosswordPuzzle {
           input.className = 'crossword-cell-input';
           input.maxLength = 1;
           input.value = this.userInputs[row][col];
+          
+          input.dataset.row = row;
+          input.dataset.col = col;
+
+          input.addEventListener('click', () => {
+            this.handleCellClick(row, col);
+          });
 
           input.addEventListener('input', (e) => {
-            this.userInputs[row][col] = e.target.value.toUpperCase();
-            e.target.value = e.target.value.toUpperCase();
+            let value = e.target.value.toUpperCase();
+            
+            // Only keep the last character typed (replaces any existing character)
+            if (value.length > 1) {
+              value = value.slice(-1);
+            }
+            
+            this.userInputs[row][col] = value;
+            e.target.value = value;
+            
+            // Auto-advance to next cell if a letter was entered
+            if (value) {
+              this.advanceToNextCell(row, col);
+            }
           });
 
           input.addEventListener('keydown', (e) => {
@@ -286,15 +423,19 @@ class CrosswordPuzzle {
     switch (key) {
       case 'ArrowUp':
         newRow = Math.max(0, row - 1);
+        this.currentDirection = 'down';
         break;
       case 'ArrowDown':
         newRow = Math.min(gridSize - 1, row + 1);
+        this.currentDirection = 'down';
         break;
       case 'ArrowLeft':
         newCol = Math.max(0, col - 1);
+        this.currentDirection = 'across';
         break;
       case 'ArrowRight':
         newCol = Math.min(gridSize - 1, col + 1);
+        this.currentDirection = 'across';
         break;
       default:
         return;
@@ -304,7 +445,13 @@ class CrosswordPuzzle {
       e.preventDefault();
       if (this.currentPuzzle.answers[newRow][newCol] !== null) {
         const nextInput = this.getInputAt(newRow, newCol);
-        if (nextInput) nextInput.focus();
+        if (nextInput) {
+          nextInput.focus();
+          // Highlight word when navigating with arrows
+          this.handleCellClick(newRow, newCol);
+          // Select existing text for easy override
+          nextInput.select();
+        }
       }
     }
   }

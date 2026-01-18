@@ -132,10 +132,19 @@
   align-items: center;
   justify-content: center;
   background: #fff;
+  transition: background-color 0.2s ease;
 }
 
 .crossword-cell.black {
   background: #2c2c2c;
+}
+
+.crossword-cell.highlighted {
+  background: #e3f2fd !important;
+}
+
+.crossword-cell.current {
+  background: #90caf9 !important;
 }
 
 .crossword-cell-number {
