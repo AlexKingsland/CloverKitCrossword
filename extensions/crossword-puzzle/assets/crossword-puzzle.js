@@ -1,40 +1,4 @@
-// Crossword Puzzle Data - Database-ready structure
-// In production, this would be fetched from an API endpoint like: fetch('/api/puzzle/today')
-const puzzleData = {
-  acrossClues: {
-    1: "E-commerce platform",
-    8: "Shopping basket",
-    10: "Purchase request",
-    11: "Item for sale",
-    13: "Discounted items",
-    15: "Expensive",
-    18: "Final purchase step"
-  },
-  downClues: {
-    1: "Online store",
-    2: "Buyer",
-    3: "Transaction",
-    4: "Platform",
-    5: "Goods",
-    6: "Design",
-    7: "Vendor",
-    9: "Add to",
-    12: "Price tag",
-    14: "Store section"
-  },
-  answers: [
-    ['S', 'H', 'O', 'P', 'I', 'F', 'Y', null, 'C', 'A', 'R', 'T'],
-    ['H', null, 'R', null, 'T', null, null, null, 'A', null, 'D', null],
-    ['O', null, 'D', null, 'E', null, 'O', 'R', 'D', 'E', 'R', 'S'],
-    ['P', 'R', 'O', 'D', 'U', 'C', 'T', null, 'A', null, 'E', null],
-    [null, null, null, null, null, null, null, null, 'D', null, 'T', null],
-    ['S', 'A', 'L', 'E', 'S', null, 'P', 'R', 'I', 'C', 'Y', null],
-    ['A', null, null, null, 'L', null, 'T', null, 'C', null, null, null],
-    ['L', null, null, null, 'L', null, 'O', null, 'K', null, null, null],
-    ['E', null, null, null, 'S', null, 'R', null, 'O', null, null, null],
-    [null, null, 'C', 'H', 'E', 'C', 'K', 'O', 'U', 'T', 'S', null]
-  ]
-};
+// Crossword Puzzle - Fetched dynamically from API
 
 class CrosswordPuzzle {
   constructor() {
@@ -49,24 +13,104 @@ class CrosswordPuzzle {
     // Get topic from data attribute for API calls
     const container = document.querySelector('.crossword-container');
     this.topic = container ? container.dataset.topic : 'shopping';
-    console.log('Crossword topic:', this.topic);
+    
+    this.currentPuzzle = null;
+    this.userInputs = null;
+    this.isLoading = true;
 
-    this.currentPuzzle = puzzleData; // In production: await this.loadPuzzleFromAPI()
-    this.userInputs = this.createEmptyGrid();
+    // Initialize asynchronously
+    this.initialize();
+  }
 
-    this.init();
+  async initialize() {
+    console.log('🎯 Initializing crossword for topic:', this.topic);
+    
+    try {
+      // Show loading state
+      this.showLoadingState();
+      
+      // Load puzzle from API
+      await this.loadPuzzleFromAPI();
+      
+      // Initialize grid
+      this.userInputs = this.createEmptyGrid();
+      this.isLoading = false;
+      
+      // Render and bind events
+      this.init();
+    } catch (error) {
+      // Error already handled and displayed in loadPuzzleFromAPI
+      this.isLoading = false;
+      console.error('Failed to initialize crossword:', error);
+    }
+  }
+
+  getApiEndpoint() {
+    // Automatic environment detection
+    const hostname = window.location.hostname;
+    const isDev = hostname === 'localhost' || 
+                  hostname === '127.0.0.1' || 
+                  hostname.includes('.ngrok.io') ||
+                  hostname.includes('.ngrok-free.app');
+    
+    if (isDev) {
+      console.log('🔧 Dev mode detected - using local API');
+      return 'http://localhost:5001/api/v1';
+    } else {
+      console.log('🚀 Production mode - using Heroku API');
+      return 'https://crossword-7f44d990ad45.herokuapp.com/api/v1';
+    }
   }
 
   async loadPuzzleFromAPI() {
-    // Future implementation:
-    // try {
-    //   const response = await fetch('/api/puzzle/today');
-    //   return await response.json();
-    // } catch (error) {
-    //   console.error('Failed to load puzzle:', error);
-    //   return puzzleData; // fallback to hardcoded
-    // }
-    return puzzleData;
+    try {
+      const apiBase = this.getApiEndpoint();
+      const url = `${apiBase}/puzzles/daily?topic=${this.topic}`;
+      
+      console.log('📡 Fetching puzzle from:', url);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform API response to match expected format
+      this.currentPuzzle = {
+        acrossClues: data.acrossClues,
+        downClues: data.downClues,
+        answers: data.answers,
+        cluePositions: data.cluePositions
+      };
+      
+      console.log('✅ Puzzle loaded successfully from API');
+      console.log('   Title:', data.title);
+      console.log('   Difficulty:', data.difficulty);
+      
+    } catch (error) {
+      console.error('❌ Failed to load puzzle from API:', error.message);
+      this.showErrorState(error.message);
+      throw error; // Re-throw to prevent initialization from continuing
+    }
+  }
+
+  showErrorState(errorMessage) {
+    this.gridElement.innerHTML = `
+      <div class="error-state" style="padding: 2rem; text-align: center; color: #d32f2f;">
+        <h3>⚠️ Unable to Load Puzzle</h3>
+        <p>Failed to fetch puzzle from API.</p>
+        <p style="font-size: 0.9em; color: #666;">${errorMessage}</p>
+        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer;">
+          Retry
+        </button>
+      </div>
+    `;
+  }
+
+  showLoadingState() {
+    this.gridElement.innerHTML = '<div class="loading-state">Loading puzzle...</div>';
   }
 
   createEmptyGrid() {
@@ -138,30 +182,18 @@ class CrosswordPuzzle {
   }
 
   getClueNumber(row, col) {
-    const clueNumbers = {
-      '0-0': '1',
-      '0-8': '8',
-      '1-0': '2',
-      '1-8': '9',
-      '2-0': '3',
-      '2-6': '11',
-      '3-0': '4',
-      '3-4': '5',
-      '3-6': '12',
-      '3-8': '13',
-      '4-2': '6',
-      '5-0': '15',
-      '5-6': '16',
-      '5-8': '17',
-      '6-0': '7',
-      '6-2': '10',
-      '6-6': '14',
-      '7-8': '20',
-      '8-0': '18',
-      '8-6': '19',
-      '9-2': '21'
-    };
-    return clueNumbers[`${row}-${col}`];
+    // Dynamically find which clue number starts at this position
+    if (!this.currentPuzzle.cluePositions) {
+      return null;
+    }
+    
+    for (const [clueNum, position] of Object.entries(this.currentPuzzle.cluePositions)) {
+      if (position.row === row && position.col === col) {
+        return clueNum;
+      }
+    }
+    
+    return null;
   }
 
   renderClues() {
