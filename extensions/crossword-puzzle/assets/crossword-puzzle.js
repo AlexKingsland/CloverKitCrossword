@@ -9,6 +9,7 @@ class CrosswordPuzzle {
     this.showButton = document.getElementById('show-solution');
     this.resetButton = document.getElementById('reset-puzzle');
     this.messageElement = document.getElementById('crossword-message');
+    this.timerDisplay = document.getElementById('timer-display');
 
     // Get topic from data attribute for API calls
     const container = document.querySelector('.crossword-container');
@@ -17,6 +18,12 @@ class CrosswordPuzzle {
     this.currentPuzzle = null;
     this.userInputs = null;
     this.isLoading = true;
+    
+    // Timer properties
+    this.startTime = null;
+    this.elapsedTime = 0;
+    this.timerInterval = null;
+    this.puzzleCompleted = false;
 
     // Initialize asynchronously
     this.initialize();
@@ -126,6 +133,58 @@ class CrosswordPuzzle {
     this.renderGrid();
     this.renderClues();
     this.bindEvents();
+    
+    // Start timer
+    this.startTimer();
+  }
+
+  startTimer() {
+    this.startTime = Date.now();
+    this.elapsedTime = 0;
+    this.puzzleCompleted = false;
+    this.timerInterval = setInterval(() => {
+      this.updateTimer();
+    }, 1000);
+  }
+
+  updateTimer() {
+    if (this.puzzleCompleted) return;
+    
+    const elapsed = Date.now() - this.startTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    this.timerDisplay.textContent = 
+      `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  stopTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.elapsedTime = Date.now() - this.startTime;
+      this.puzzleCompleted = true;
+    }
+  }
+
+  formatElapsedTime() {
+    const minutes = Math.floor(this.elapsedTime / 60000);
+    const seconds = Math.floor((this.elapsedTime % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  showCompletionBanner() {
+    const timeStr = this.formatElapsedTime();
+    const banner = document.createElement('div');
+    banner.className = 'completion-banner';
+    banner.innerHTML = `
+      <div class="banner-content">
+        <h3>🎉 Congratulations!</h3>
+        <p>You completed the crossword in <strong>${timeStr}</strong>!</p>
+        <button class="btn btn-primary" onclick="this.closest('.completion-banner').remove()">Close</button>
+      </div>
+    `;
+    
+    const container = document.querySelector('.crossword-container');
+    container.insertBefore(banner, container.firstChild);
   }
 
   renderGrid() {
@@ -258,6 +317,11 @@ class CrosswordPuzzle {
   }
 
   checkAnswers() {
+    // Don't allow checking if already solved
+    if (this.puzzleCompleted) {
+      return;
+    }
+
     let correct = 0;
     let total = 0;
     const gridSize = this.currentPuzzle.answers.length;
@@ -275,10 +339,18 @@ class CrosswordPuzzle {
     }
 
     if (correct === total) {
-      this.showMessage('Congratulations! Puzzle completed!', 'success');
+      this.stopTimer();
+      this.markAsSolved();
+      this.showCompletionBanner();
     } else {
       this.showMessage(`Correct: ${correct}/${total}. Keep trying!`, 'info');
     }
+  }
+
+  markAsSolved() {
+    this.checkButton.disabled = true;
+    this.checkButton.textContent = 'Solved!';
+    this.checkButton.classList.add('btn-solved');
   }
 
   showSolution() {

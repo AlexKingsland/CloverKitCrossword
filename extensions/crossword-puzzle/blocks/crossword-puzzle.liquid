@@ -4,7 +4,13 @@
   <h2 class="crossword-title">{{ block.settings.title }}</h2>
 
   <div class="crossword-wrapper">
-    <div class="crossword-grid" id="crossword-grid"></div>
+    <div class="crossword-grid-wrapper">
+      <div class="crossword-grid" id="crossword-grid"></div>
+      <div class="crossword-timer">
+        <span class="timer-label">Time:</span>
+        <span id="timer-display">00:00</span>
+      </div>
+    </div>
 
     <div class="crossword-clues">
       <div class="clues-across">

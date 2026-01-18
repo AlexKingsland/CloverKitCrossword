@@ -7,10 +7,103 @@
 
 .crossword-title {
   text-align: center;
-  margin-bottom: 30px;
   color: #202223;
   font-size: 2em;
   font-weight: 600;
+  margin: 0 0 30px 0;
+}
+
+.crossword-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.crossword-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #f6f6f7;
+  border-radius: 8px;
+  border: 2px solid #e8e9ea;
+}
+
+.timer-label {
+  font-weight: 600;
+  color: #202223;
+  font-size: 14px;
+}
+
+#timer-display {
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: bold;
+  color: #0066cc;
+  min-width: 60px;
+}
+
+.completion-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.banner-content {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+.banner-content h3 {
+  margin: 0 0 20px 0;
+  color: #202223;
+  font-size: 2em;
+}
+
+.banner-content p {
+  margin: 0 0 30px 0;
+  color: #666;
+  font-size: 1.2em;
+}
+
+.banner-content strong {
+  color: #0066cc;
+  font-size: 1.3em;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .crossword-wrapper {
@@ -142,6 +235,17 @@
 
 .btn-primary:hover {
   background: #0052a3;
+}
+
+.btn-solved {
+  background: #9e9e9e !important;
+  color: #ffffff !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+.btn-solved:hover {
+  background: #9e9e9e !important;
 }
 
 .btn-secondary {
