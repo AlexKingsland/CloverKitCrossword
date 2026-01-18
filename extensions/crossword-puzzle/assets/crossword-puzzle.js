@@ -46,6 +46,11 @@ class CrosswordPuzzle {
     this.resetButton = document.getElementById('reset-puzzle');
     this.messageElement = document.getElementById('crossword-message');
 
+    // Get topic from data attribute for API calls
+    const container = document.querySelector('.crossword-container');
+    this.topic = container ? container.dataset.topic : 'shopping';
+    console.log('Crossword topic:', this.topic);
+
     this.currentPuzzle = puzzleData; // In production: await this.loadPuzzleFromAPI()
     this.userInputs = this.createEmptyGrid();
 
@@ -80,7 +85,6 @@ class CrosswordPuzzle {
   }
 
   renderGrid() {
-    console.log('=== CROSSWORD RENDER v2.0 - Starting renderGrid ===');
     this.gridElement.innerHTML = '';
     let cellCount = 0;
     let blackCount = 0;
@@ -97,7 +101,6 @@ class CrosswordPuzzle {
           cell.classList.add('black');
           cell.innerHTML = '&nbsp;';
           blackCount++;
-          console.log(`Creating BLACK cell at [${row},${col}]`);
         } else {
           const input = document.createElement('input');
           input.type = 'text';

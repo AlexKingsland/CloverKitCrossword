@@ -1,6 +1,6 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
-<div class="crossword-container">
+<div class="crossword-container" data-topic="{{ block.settings.topic }}">
   <h2 class="crossword-title">{{ block.settings.title }}</h2>
 
   <div class="crossword-wrapper">
@@ -40,6 +40,26 @@
       "id": "title",
       "label": "Title",
       "default": "Daily Crossword"
+    },
+    {
+      "type": "select",
+      "id": "topic",
+      "label": "Puzzle Topic",
+      "options": [
+        {
+          "value": "cars",
+          "label": "Cars"
+        },
+        {
+          "value": "music",
+          "label": "Music"
+        },
+        {
+          "value": "shopping",
+          "label": "Shopping"
+        }
+      ],
+      "default": "shopping"
     }
   ]
 }
