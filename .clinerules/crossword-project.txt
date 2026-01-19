@@ -1,1 +1,2 @@
 This CloverKitCrossword package is creating an extension in shopify that will allow merchants to add a crossword puzzle to their store front as an app block. For any query which you do not know the answer for and requires shopify specific knowledge, please use the shopify mcp server you have access to to check their api docs.
+The CloverKitCrosswordAPI package manages the supporting API infrastructure and datastore schemas for any necessary server requests required to support the CloverKitCrossword extension in shopify.
