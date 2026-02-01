@@ -452,6 +452,10 @@ class CrosswordPuzzle {
     let newRow = row, newCol = col;
 
     switch (key) {
+      case 'Backspace':
+        e.preventDefault();
+        this.handleBackspace(row, col);
+        return;
       case 'ArrowUp':
         newRow = Math.max(0, row - 1);
         this.currentDirection = 'down';
@@ -483,6 +487,68 @@ class CrosswordPuzzle {
           // Select existing text for easy override
           nextInput.select();
         }
+      }
+    }
+  }
+
+  handleBackspace(row, col) {
+    // Clear current cell
+    this.userInputs[row][col] = '';
+    const currentInput = this.getInputAt(row, col);
+    if (currentInput) {
+      currentInput.value = '';
+    }
+    
+    // Try to move to previous cell in selected word
+    if (this.selectedWord) {
+      const currentIndex = this.selectedWord.findIndex(
+        cell => cell.row === row && cell.col === col
+      );
+      
+      if (currentIndex > 0) {
+        // Move to previous cell in word
+        const prevCell = this.selectedWord[currentIndex - 1];
+        const prevInput = this.getInputAt(prevCell.row, prevCell.col);
+        if (prevInput) {
+          prevInput.focus();
+          this.handleCellClick(prevCell.row, prevCell.col);
+        }
+        return;
+      }
+    }
+    
+    // Fallback: move based on current direction
+    const gridSize = this.currentPuzzle.answers.length;
+    let prevRow = row;
+    let prevCol = col;
+    
+    if (this.currentDirection === 'across') {
+      // Move left
+      prevCol = col - 1;
+      while (prevCol >= 0) {
+        if (this.currentPuzzle.answers[prevRow][prevCol] !== null) {
+          break; // Found valid cell
+        }
+        prevCol--;
+      }
+    } else {
+      // Move up
+      prevRow = row - 1;
+      while (prevRow >= 0) {
+        if (this.currentPuzzle.answers[prevRow][prevCol] !== null) {
+          break; // Found valid cell
+        }
+        prevRow--;
+      }
+    }
+    
+    // Move focus if valid cell found
+    if (prevRow >= 0 && prevCol >= 0 && 
+        this.currentPuzzle.answers[prevRow][prevCol] !== null) {
+      const prevInput = this.getInputAt(prevRow, prevCol);
+      if (prevInput) {
+        prevInput.focus();
+        this.handleCellClick(prevRow, prevCol);
       }
     }
   }

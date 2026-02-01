@@ -290,12 +290,20 @@
   .crossword-wrapper {
     flex-direction: column;
     gap: 20px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .crossword-grid-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   #crossword-grid {
-    grid-template-columns: repeat(10, 32px);
-    grid-template-rows: repeat(10, 32px);
-    margin: 0 auto;
+    grid-template-columns: repeat(var(--grid-size, 10), 32px);
+    grid-template-rows: repeat(var(--grid-size, 10), 32px);
   }
 
   .crossword-cell {
@@ -312,7 +320,43 @@
     font-size: 9px;
   }
 
+  .crossword-clues {
+    width: 100%;
+    flex-direction: column;
+    min-width: unset;
+  }
+
   .crossword-container {
     padding: 10px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 400px) {
+  #crossword-grid {
+    grid-template-columns: repeat(var(--grid-size, 10), 28px);
+    grid-template-rows: repeat(var(--grid-size, 10), 28px);
+  }
+
+  .crossword-cell {
+    width: 28px;
+    height: 28px;
+  }
+
+  .crossword-cell-input {
+    font-size: 12px;
+  }
+
+  .crossword-cell-number {
+    font-size: 8px;
+  }
+
+  .crossword-container {
+    padding: 8px;
+  }
+
+  .crossword-title {
+    font-size: 1.5em;
+    margin-bottom: 20px;
   }
 }
