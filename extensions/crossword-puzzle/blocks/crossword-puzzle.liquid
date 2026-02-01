@@ -1,6 +1,6 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
-<div class="crossword-container" data-topic="{{ block.settings.topic }}">
+<div class="crossword-container" data-difficulty="{{ block.settings.difficulty }}">
   <h2 class="crossword-title">{{ block.settings.title }}</h2>
 
   <div class="crossword-wrapper">
@@ -49,23 +49,23 @@
     },
     {
       "type": "select",
-      "id": "topic",
-      "label": "Puzzle Topic",
+      "id": "difficulty",
+      "label": "Puzzle Difficulty",
       "options": [
         {
-          "value": "cars",
-          "label": "Cars"
+          "value": "easy",
+          "label": "Easy"
         },
         {
-          "value": "music",
-          "label": "Music"
+          "value": "medium",
+          "label": "Medium"
         },
         {
-          "value": "shopping",
-          "label": "Shopping"
+          "value": "hard",
+          "label": "Hard"
         }
       ],
-      "default": "shopping"
+      "default": "medium"
     }
   ]
 }

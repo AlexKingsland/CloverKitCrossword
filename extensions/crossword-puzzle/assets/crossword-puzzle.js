@@ -1,4 +1,8 @@
-// Crossword Puzzle - Fetched dynamically from API
+// Crossword Puzzle - Fetched from Cloudflare R2
+
+// R2 Configuration
+const R2_PUBLIC_HOST = "cdn.cloverkitstudio.com";
+const BASE_PATH = "v1/generic";
 
 class CrosswordPuzzle {
   constructor() {
@@ -11,9 +15,9 @@ class CrosswordPuzzle {
     this.messageElement = document.getElementById('crossword-message');
     this.timerDisplay = document.getElementById('timer-display');
 
-    // Get topic from data attribute for API calls
+    // Get difficulty from data attribute for R2 fetching
     const container = document.querySelector('.crossword-container');
-    this.topic = container ? container.dataset.topic : 'shopping';
+    this.difficulty = container ? container.dataset.difficulty : 'medium';
     
     this.currentPuzzle = null;
     this.userInputs = null;
@@ -36,14 +40,14 @@ class CrosswordPuzzle {
   }
 
   async initialize() {
-    console.log('🎯 Initializing crossword for topic:', this.topic);
+    console.log('🎯 Initializing crossword for difficulty:', this.difficulty);
     
     try {
       // Show loading state
       this.showLoadingState();
       
-      // Load puzzle from API
-      await this.loadPuzzleFromAPI();
+      // Load puzzle from R2
+      await this.loadPuzzleFromR2();
       
       // Initialize grid
       this.userInputs = this.createEmptyGrid();
@@ -52,45 +56,59 @@ class CrosswordPuzzle {
       // Render and bind events
       this.init();
     } catch (error) {
-      // Error already handled and displayed in loadPuzzleFromAPI
+      // Error already handled and displayed in loadPuzzleFromR2
       this.isLoading = false;
       console.error('Failed to initialize crossword:', error);
     }
   }
 
-  getApiEndpoint() {
-    // Automatic environment detection
-    const hostname = window.location.hostname;
-    const isDev = hostname === 'localhost' || 
-                  hostname === '127.0.0.1' || 
-                  hostname.includes('.ngrok.io') ||
-                  hostname.includes('.ngrok-free.app');
-    
-    if (isDev) {
-      console.log('🔧 Dev mode detected - using local API');
-      return 'http://localhost:5001/api/v1';
-    } else {
-      console.log('🚀 Production mode - using Heroku API');
-      return 'https://crossword-7f44d990ad45.herokuapp.com/api/v1';
-    }
+  getTodayUTC() {
+    const now = new Date();
+    return now.toISOString().split('T')[0]; // YYYY-MM-DD
   }
 
-  async loadPuzzleFromAPI() {
+  getYesterdayUTC() {
+    const now = new Date();
+    now.setUTCDate(now.getUTCDate() - 1);
+    return now.toISOString().split('T')[0];
+  }
+
+  async loadPuzzleFromR2() {
     try {
-      const apiBase = this.getApiEndpoint();
-      const url = `${apiBase}/puzzles/daily?topic=${this.topic}`;
+      const today = this.getTodayUTC();
+      const url = `https://${R2_PUBLIC_HOST}/${BASE_PATH}/${this.difficulty}/${today}.json`;
       
-      console.log('📡 Fetching puzzle from:', url);
+      console.log('📡 Fetching puzzle from R2:', url);
       
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+        // Try yesterday's puzzle as fallback
+        console.log('⚠️ Today\'s puzzle not found, trying yesterday...');
+        const yesterday = this.getYesterdayUTC();
+        const fallbackUrl = `https://${R2_PUBLIC_HOST}/${BASE_PATH}/${this.difficulty}/${yesterday}.json`;
+        
+        console.log('📡 Fetching fallback puzzle from R2:', fallbackUrl);
+        const fallbackResponse = await fetch(fallbackUrl);
+        
+        if (!fallbackResponse.ok) {
+          throw new Error(`Puzzle not found for ${today} or ${yesterday}`);
+        }
+        
+        const data = await fallbackResponse.json();
+        this.currentPuzzle = {
+          acrossClues: data.acrossClues,
+          downClues: data.downClues,
+          answers: data.answers,
+          cluePositions: data.cluePositions
+        };
+        console.log('✅ Loaded yesterday\'s puzzle as fallback');
+        console.log('   Title:', data.title);
+        console.log('   Date:', data.date);
+        return;
       }
       
       const data = await response.json();
-      
-      // Transform API response to match expected format
       this.currentPuzzle = {
         acrossClues: data.acrossClues,
         downClues: data.downClues,
@@ -98,14 +116,14 @@ class CrosswordPuzzle {
         cluePositions: data.cluePositions
       };
       
-      console.log('✅ Puzzle loaded successfully from API');
+      console.log('✅ Puzzle loaded successfully from R2');
       console.log('   Title:', data.title);
-      console.log('   Difficulty:', data.difficulty);
+      console.log('   Date:', data.date);
       
     } catch (error) {
-      console.error('❌ Failed to load puzzle from API:', error.message);
+      console.error('❌ Failed to load puzzle from R2:', error.message);
       this.showErrorState(error.message);
-      throw error; // Re-throw to prevent initialization from continuing
+      throw error;
     }
   }
 
