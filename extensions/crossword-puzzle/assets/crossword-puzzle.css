@@ -170,11 +170,22 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  caret-color: transparent;
 }
 
 .crossword-cell-input:focus {
   outline: 2px solid #0066cc;
   outline-offset: -2px;
+}
+
+.crossword-cell-input::selection {
+  background: transparent;
+  color: inherit;
+}
+
+.crossword-cell-input::-moz-selection {
+  background: transparent;
+  color: inherit;
 }
 
 .crossword-clues {
