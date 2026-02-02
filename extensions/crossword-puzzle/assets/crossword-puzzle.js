@@ -280,6 +280,24 @@ class CrosswordPuzzle {
     });
   }
 
+  getClueNumberForWord(wordCells, direction) {
+    if (!wordCells || wordCells.length === 0) return null;
+    
+    // Get the starting cell of the word
+    const startCell = wordCells[0];
+    
+    // Find if there's a clue number at this position with matching direction
+    for (const [clueNum, position] of Object.entries(this.currentPuzzle.cluePositions)) {
+      if (position.row === startCell.row && 
+          position.col === startCell.col && 
+          position.direction === direction) {
+        return clueNum;
+      }
+    }
+    
+    return null;
+  }
+
   handleCellClick(row, col) {
     const now = Date.now();
     const isDoubleClick = (now - this.lastClickTime) < 300;
@@ -308,6 +326,12 @@ class CrosswordPuzzle {
     if (word) {
       this.selectedWord = word;
       this.highlightWord(word, row, col);
+      
+      // Highlight corresponding clue
+      const clueNum = this.getClueNumberForWord(word, this.currentDirection);
+      if (clueNum) {
+        this.highlightClue(clueNum);
+      }
     }
     
     this.currentCell = { row, col };
@@ -457,9 +481,35 @@ class CrosswordPuzzle {
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('clue-item')) {
         const clueNum = e.target.dataset.clue;
-        this.highlightClue(clueNum);
+        this.handleClueClick(clueNum);
       }
     });
+  }
+
+  handleClueClick(clueNum) {
+    // Determine direction - check if it's in across or down clues
+    const isAcross = this.currentPuzzle.acrossClues.hasOwnProperty(clueNum);
+    const direction = isAcross ? 'across' : 'down';
+    
+    // Get position from cluePositions
+    const position = this.currentPuzzle.cluePositions[clueNum];
+    if (!position) {
+      console.warn(`No position found for clue ${clueNum}`);
+      return;
+    }
+    
+    // Set direction and select the starting cell
+    this.currentDirection = direction;
+    this.handleCellClick(position.row, position.col);
+    
+    // Focus the input at that position
+    const input = this.getInputAt(position.row, position.col);
+    if (input) {
+      input.focus();
+    }
+    
+    // Highlight the clue (already done by handleCellClick, but ensure it)
+    this.highlightClue(clueNum);
   }
 
   handleKeyDown(e, row, col) {
@@ -635,10 +685,22 @@ class CrosswordPuzzle {
   }
 
   highlightClue(clueNum) {
+    // Remove highlight from all clues
     document.querySelectorAll('.clue-item').forEach(item => {
       item.classList.remove('highlight');
     });
-    document.querySelector(`[data-clue="${clueNum}"]`).classList.add('highlight');
+    
+    // Find and highlight the target clue
+    const clueElement = document.querySelector(`[data-clue="${clueNum}"]`);
+    if (clueElement) {
+      clueElement.classList.add('highlight');
+      console.log('✓ Highlighted clue:', clueNum);
+    } else {
+      console.warn('⚠️ Clue element not found for clue number:', clueNum);
+      console.warn('   Available clue numbers:', 
+        Array.from(document.querySelectorAll('.clue-item')).map(el => el.dataset.clue)
+      );
+    }
   }
 
   showMessage(text, type) {

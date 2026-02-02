@@ -232,6 +232,12 @@
   color: #721c24;
 }
 
+.clue-item.highlight {
+  background: #90caf9;
+  color: #202223;
+  font-weight: 600;
+}
+
 .crossword-controls {
   text-align: center;
   margin-bottom: 20px;
