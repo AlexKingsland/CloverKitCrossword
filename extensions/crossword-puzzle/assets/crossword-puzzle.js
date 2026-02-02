@@ -312,10 +312,26 @@ class CrosswordPuzzle {
     
     this.currentCell = { row, col };
     
-    // Select the text in the input for easy override
+    // Select the text in the input for easy override (desktop only)
     const input = this.getInputAt(row, col);
     if (input && input.value) {
-      input.select();
+      const isTouch =
+        window.matchMedia &&
+        window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+      if (!isTouch) {
+        // Desktop: selecting makes typing overwrite existing letter
+        input.select();
+      } else {
+        // Mobile: avoid selection UI; just place caret at end (or do nothing)
+        // If you keep caret hidden via CSS, this still avoids the blue highlight.
+        try {
+          const len = input.value.length;
+          input.setSelectionRange(len, len); // caret at end, no highlight
+        } catch (e) {
+          // ignore
+        }
+      }
     }
   }
 
