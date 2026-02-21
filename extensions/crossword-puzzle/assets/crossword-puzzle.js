@@ -8,6 +8,9 @@ class CrosswordPuzzle {
   constructor() {
     this.containerElement = document.querySelector('.crossword-container');
     this.rotateOverlayElement = document.getElementById('crossword-rotate-overlay');
+    this.collapsibleContentElement = document.getElementById('crossword-collapsible-content');
+    this.collapsedCoverButton = document.getElementById('crossword-collapsed-cover');
+    this.closeButton = document.getElementById('crossword-close-button');
     this.gridElement = document.getElementById('crossword-grid');
     this.acrossCluesElement = document.getElementById('across-clues');
     this.downCluesElement = document.getElementById('down-clues');
@@ -44,9 +47,39 @@ class CrosswordPuzzle {
 
     this.bindOrientationEvents();
     this.updateMobileOrientationState();
+    this.bindCollapseEvents();
+    this.setCollapsedState(true);
 
     // Initialize asynchronously
     this.initialize();
+  }
+
+  bindCollapseEvents() {
+    if (this.collapsedCoverButton) {
+      this.collapsedCoverButton.addEventListener('click', () => this.setCollapsedState(false));
+    }
+
+    if (this.closeButton) {
+      this.closeButton.addEventListener('click', () => this.setCollapsedState(true));
+    }
+  }
+
+  setCollapsedState(isCollapsed) {
+    if (!this.containerElement) return;
+
+    this.containerElement.classList.toggle('is-collapsed', isCollapsed);
+    this.containerElement.classList.toggle('is-expanded', !isCollapsed);
+
+    if (this.collapsibleContentElement) {
+      this.collapsibleContentElement.setAttribute('aria-hidden', String(isCollapsed));
+    }
+
+    // Pause/resume timer based on collapsed state
+    if (isCollapsed) {
+      this.pauseTimer();
+    } else {
+      this.resumeTimer();
+    }
   }
 
   bindOrientationEvents() {
@@ -216,15 +249,41 @@ class CrosswordPuzzle {
     this.startTime = Date.now();
     this.elapsedTime = 0;
     this.puzzleCompleted = false;
+    this.isPaused = false;
+    this.timerInterval = setInterval(() => {
+      this.updateTimer();
+    }, 1000);
+  }
+
+  pauseTimer() {
+    if (this.isPaused || this.puzzleCompleted || !this.timerInterval) return;
+    
+    // Save elapsed time so far
+    this.elapsedTime += Date.now() - this.startTime;
+    this.isPaused = true;
+    
+    // Stop the interval
+    clearInterval(this.timerInterval);
+    this.timerInterval = null;
+  }
+
+  resumeTimer() {
+    if (!this.isPaused || this.puzzleCompleted) return;
+    
+    // Reset start time for new interval
+    this.startTime = Date.now();
+    this.isPaused = false;
+    
+    // Restart the interval
     this.timerInterval = setInterval(() => {
       this.updateTimer();
     }, 1000);
   }
 
   updateTimer() {
-    if (this.puzzleCompleted) return;
+    if (this.puzzleCompleted || this.isPaused) return;
     
-    const elapsed = Date.now() - this.startTime;
+    const elapsed = this.elapsedTime + (Date.now() - this.startTime);
     const minutes = Math.floor(elapsed / 60000);
     const seconds = Math.floor((elapsed % 60000) / 1000);
     this.timerDisplay.textContent = 
@@ -234,7 +293,7 @@ class CrosswordPuzzle {
   stopTimer() {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
-      this.elapsedTime = Date.now() - this.startTime;
+      this.elapsedTime += Date.now() - this.startTime;
       this.puzzleCompleted = true;
     }
   }

@@ -1,11 +1,30 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
-<div class="crossword-container" data-difficulty="{{ block.settings.difficulty }}">
+<div class="crossword-container is-collapsed" data-difficulty="{{ block.settings.difficulty }}">
   <div id="crossword-rotate-overlay" class="mobile-rotate-overlay" aria-live="polite">
     <div class="mobile-rotate-overlay-content">
       To continue playing crossword, please rotate your phone
     </div>
   </div>
+
+  <div id="crossword-collapsible-content" class="crossword-collapsible-content" aria-hidden="true">
+    <button
+      id="crossword-collapsed-cover"
+      class="crossword-collapsed-cover"
+      type="button"
+      aria-label="Open crossword"
+    >
+      <span>Play The Daily Crossword!</span>
+    </button>
+
+  <button
+    id="crossword-close-button"
+    class="crossword-close-button"
+    type="button"
+    aria-label="Close crossword"
+  >
+    ✕
+  </button>
 
   <h2 class="crossword-title">{{ block.settings.title }}</h2>
 
@@ -38,6 +57,7 @@
   </div>
 
   <div id="crossword-message" class="crossword-message"></div>
+  </div>
 </div>
 
 {{ 'crossword-puzzle.js' | asset_url | script_tag }}
