@@ -114,32 +114,29 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 
 .crossword-timer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: #f6f6f7;
-  border-radius: 8px;
-  border: 2px solid #e8e9ea;
+  gap: 6px;
+  padding: 0;
 }
 
 .timer-label {
-  font-weight: 600;
-  color: #202223;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1;
+  color: #616161;
 }
 
 #timer-display {
   font-family: 'Courier New', monospace;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  color: #0066cc;
-  min-width: 60px;
+  color: #202223;
+  min-width: 50px;
 }
 
 .completion-banner {
@@ -336,13 +333,129 @@
 }
 
 .crossword-controls {
-  text-align: center;
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+/* --- Reveal Dropdown --- */
+
+.reveal-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.reveal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reveal-chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.reveal-toggle[aria-expanded="true"] .reveal-chevron {
+  transform: rotate(180deg);
+}
+
+.reveal-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid #d2d5d9;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  z-index: 20;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.reveal-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.reveal-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #202223;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.reveal-menu-item:hover {
+  background: #f1f2f4;
+}
+
+.reveal-menu-item:active {
+  background: #e4e5e7;
+}
+
+.reveal-menu-item svg {
+  flex-shrink: 0;
+  color: #616161;
+}
+
+.reveal-menu-item:hover svg {
+  color: #202223;
+}
+
+.reveal-menu-divider {
+  height: 1px;
+  background: #e8e9ea;
+  margin: 4px 8px;
+}
+
+/* --- Revealed Cell Indicator --- */
+
+.crossword-cell.revealed {
+  position: relative;
+}
+
+.crossword-cell.revealed .crossword-cell-input {
+  color: #5c7a99;
+}
+
+/* Small triangle in the bottom-right corner of revealed cells */
+.crossword-cell.revealed::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 7px 7px;
+  border-color: transparent transparent #90caf9 transparent;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .btn {
   padding: 10px 20px;
-  margin: 0 5px;
+  margin: 0;
   border: none;
   border-radius: 4px;
   font-size: 14px;
@@ -443,6 +556,27 @@
   .crossword-collapsible-content {
     padding: 10px;
   }
+
+  /* Controls toolbar on mobile: center and wrap */
+  .crossword-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .reveal-menu-item {
+    padding: 10px 14px;
+  }
+
+  /* Smaller revealed triangle on medium mobile */
+  .crossword-cell.revealed::after {
+    border-width: 0 0 6px 6px;
+  }
 }
 
 .crossword-container.mobile-landscape-blocked .mobile-rotate-overlay {
@@ -495,6 +629,16 @@
   .crossword-title {
     font-size: 1.5em;
     margin-bottom: 20px;
+  }
+
+  /* Even smaller revealed triangle on extra-small screens */
+  .crossword-cell.revealed::after {
+    border-width: 0 0 5px 5px;
+  }
+
+  .btn {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }
 
@@ -605,12 +749,14 @@
   box-shadow: 0 0 0 rgba(0, 0, 0, 0.15);
 }
 
+.keyboard-key-dismiss,
 .keyboard-key-backspace {
   max-width: 52px;
   background: #acb5bd;
   color: #ffffff;
 }
 
+.keyboard-key-dismiss:active,
 .keyboard-key-backspace:active {
   background: #96a1aa;
 }

@@ -17,7 +17,12 @@ class CrosswordPuzzle {
     this.acrossCluesElement = document.getElementById('across-clues');
     this.downCluesElement = document.getElementById('down-clues');
     this.checkButton = document.getElementById('check-answers');
-    this.showButton = document.getElementById('show-solution');
+    this.revealDropdown = document.getElementById('reveal-dropdown');
+    this.revealToggle = document.getElementById('reveal-toggle');
+    this.revealMenu = document.getElementById('reveal-menu');
+    this.revealLetterBtn = document.getElementById('reveal-letter');
+    this.revealWordBtn = document.getElementById('reveal-word');
+    this.revealPuzzleBtn = document.getElementById('reveal-puzzle');
     this.resetButton = document.getElementById('reset-puzzle');
     this.messageElement = document.getElementById('crossword-message');
     this.timerDisplay = document.getElementById('timer-display');
@@ -28,6 +33,7 @@ class CrosswordPuzzle {
     
     this.currentPuzzle = null;
     this.userInputs = null;
+    this.revealedCells = new Set(); // Track cells revealed via Reveal feature (stored as "row,col")
     this.isLoading = true;
     
     // Timer properties
@@ -349,6 +355,48 @@ class CrosswordPuzzle {
       swipeStartY = null;
     }, { passive: true });
 
+    // Dead-zone hit detection: taps in gaps between keys find the nearest key
+    const rows = this.mobileKeyboard.querySelectorAll('.keyboard-row');
+    rows.forEach(row => {
+      row.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.keyboard-key')) return;
+        const touch = e.touches[0];
+        let closestKey = null;
+        let closestDist = Infinity;
+        row.querySelectorAll('.keyboard-key').forEach(key => {
+          const r = key.getBoundingClientRect();
+          const dist = Math.hypot(touch.clientX - (r.left + r.width / 2), touch.clientY - (r.top + r.height / 2));
+          if (dist < closestDist) { closestDist = dist; closestKey = key; }
+        });
+        if (closestKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handleMobileKeyPress(closestKey.dataset.key);
+        }
+      }, { passive: false });
+    });
+
+    // Also handle taps in vertical gaps between rows
+    const keysContainer = this.mobileKeyboard.querySelector('.keyboard-keys');
+    if (keysContainer) {
+      keysContainer.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.keyboard-key') || e.target.closest('.keyboard-row')) return;
+        const touch = e.touches[0];
+        let closestKey = null;
+        let closestDist = Infinity;
+        keysContainer.querySelectorAll('.keyboard-key').forEach(key => {
+          const r = key.getBoundingClientRect();
+          const dist = Math.hypot(touch.clientX - (r.left + r.width / 2), touch.clientY - (r.top + r.height / 2));
+          if (dist < closestDist) { closestDist = dist; closestKey = key; }
+        });
+        if (closestKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handleMobileKeyPress(closestKey.dataset.key);
+        }
+      }, { passive: false });
+    }
+
     // Dismiss keyboard when the user scrolls (but not during programmatic scrolls)
     this._programmaticScroll = false;
     window.addEventListener('scroll', () => {
@@ -408,6 +456,11 @@ class CrosswordPuzzle {
 
   handleMobileKeyPress(key) {
     if (!this.currentCell) return;
+
+    if (key === 'Dismiss') {
+      this.hideMobileKeyboard();
+      return;
+    }
 
     if (key === 'Backspace') {
       this.handleBackspace(this.currentCell.row, this.currentCell.col);
@@ -881,6 +934,11 @@ class CrosswordPuzzle {
             numberSpan.textContent = clueNumber;
             cell.appendChild(numberSpan);
           }
+
+          // Restore revealed indicator if this cell was previously revealed
+          if (this.revealedCells.has(`${row},${col}`)) {
+            cell.classList.add('revealed');
+          }
         }
 
         this.gridElement.appendChild(cell);
@@ -918,10 +976,45 @@ class CrosswordPuzzle {
 
   bindEvents() {
     this.checkButton.addEventListener('click', () => this.checkAnswers());
-    this.showButton.addEventListener('click', () => this.showSolution());
     this.resetButton.addEventListener('click', () => this.resetPuzzle());
 
+    // Reveal dropdown toggle
+    if (this.revealToggle) {
+      this.revealToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleRevealMenu();
+      });
+    }
+
+    // Reveal menu items
+    if (this.revealLetterBtn) {
+      this.revealLetterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.revealLetter();
+        this.closeRevealMenu();
+      });
+    }
+    if (this.revealWordBtn) {
+      this.revealWordBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.revealWord();
+        this.closeRevealMenu();
+      });
+    }
+    if (this.revealPuzzleBtn) {
+      this.revealPuzzleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.revealPuzzle();
+        this.closeRevealMenu();
+      });
+    }
+
+    // Close reveal menu when clicking outside
     document.addEventListener('click', (e) => {
+      if (this.revealDropdown && !this.revealDropdown.contains(e.target)) {
+        this.closeRevealMenu();
+      }
+
       if (e.target.classList.contains('clue-item')) {
         const clueNum = e.target.dataset.clue;
         this.handleClueClick(clueNum);
@@ -931,6 +1024,130 @@ class CrosswordPuzzle {
         }
       }
     });
+
+    // Close reveal menu on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeRevealMenu();
+      }
+    });
+  }
+
+  // --- Reveal Dropdown ---
+
+  toggleRevealMenu() {
+    if (!this.revealMenu || !this.revealToggle) return;
+    const isOpen = this.revealMenu.classList.contains('open');
+    if (isOpen) {
+      this.closeRevealMenu();
+    } else {
+      this.openRevealMenu();
+    }
+  }
+
+  openRevealMenu() {
+    if (!this.revealMenu || !this.revealToggle) return;
+    this.revealMenu.classList.add('open');
+    this.revealToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  closeRevealMenu() {
+    if (!this.revealMenu || !this.revealToggle) return;
+    this.revealMenu.classList.remove('open');
+    this.revealToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  // --- Reveal Actions ---
+
+  revealLetter() {
+    if (!this.currentCell) {
+      this.showMessage('Select a cell first', 'info');
+      return;
+    }
+
+    const { row, col } = this.currentCell;
+    const ans = this.currentPuzzle.answers?.[row]?.[col];
+
+    if (typeof ans !== 'string' || ans.length !== 1) return;
+
+    // Already correct — nothing to reveal
+    if (this.userInputs[row][col] === ans) {
+      this.showMessage('Already correct!', 'info');
+      return;
+    }
+
+    this.userInputs[row][col] = ans;
+    this.revealedCells.add(`${row},${col}`);
+
+    // Update the input in the DOM
+    const input = this.getInputAt(row, col);
+    if (input) {
+      input.value = ans;
+    }
+
+    // Apply revealed visual indicator to the cell
+    this.applyRevealedClass(row, col);
+
+    this.showMessage('Letter revealed', 'info');
+  }
+
+  revealWord() {
+    if (!this.selectedWord || this.selectedWord.length === 0) {
+      this.showMessage('Select a word first', 'info');
+      return;
+    }
+
+    let alreadyComplete = true;
+
+    this.selectedWord.forEach(({ row, col }) => {
+      const ans = this.currentPuzzle.answers?.[row]?.[col];
+      if (typeof ans !== 'string' || ans.length !== 1) return;
+
+      if (this.userInputs[row][col] !== ans) {
+        alreadyComplete = false;
+        this.userInputs[row][col] = ans;
+        this.revealedCells.add(`${row},${col}`);
+
+        const input = this.getInputAt(row, col);
+        if (input) {
+          input.value = ans;
+        }
+
+        this.applyRevealedClass(row, col);
+      }
+    });
+
+    if (alreadyComplete) {
+      this.showMessage('Word already correct!', 'info');
+    } else {
+      this.showMessage('Word revealed', 'info');
+    }
+  }
+
+  revealPuzzle() {
+    const gridSize = this.currentPuzzle.answers.length;
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const ans = this.currentPuzzle.answers?.[row]?.[col];
+        if (typeof ans === 'string' && ans.length === 1) {
+          if (this.userInputs[row][col] !== ans) {
+            this.revealedCells.add(`${row},${col}`);
+          }
+          this.userInputs[row][col] = ans;
+        }
+      }
+    }
+    this.renderGrid();
+    this.showMessage('Puzzle revealed!', 'info');
+  }
+
+  applyRevealedClass(row, col) {
+    const gridSize = this.currentPuzzle.answers.length;
+    const cellIndex = row * gridSize + col;
+    const cellElement = this.gridElement.children[cellIndex];
+    if (cellElement) {
+      cellElement.classList.add('revealed');
+    }
   }
 
   handleClueClick(clueNum) {
@@ -1140,23 +1357,9 @@ class CrosswordPuzzle {
     this.checkButton.classList.add('btn-solved');
   }
 
-  showSolution() {
-    this.userInputs = this.createEmptyGrid();
-    const gridSize = this.currentPuzzle.answers.length;
-    for (let row = 0; row < gridSize; row++) {
-      for (let col = 0; col < gridSize; col++) {
-        const ans = this.currentPuzzle.answers?.[row]?.[col];
-        if (typeof ans === 'string' && ans.length === 1) {
-          this.userInputs[row][col] = ans;
-        }
-      }
-    }
-    this.renderGrid();
-    this.showMessage('Solution shown!', 'info');
-  }
-
   resetPuzzle() {
     this.userInputs = this.createEmptyGrid();
+    this.revealedCells.clear();
     this.renderGrid();
     this.showMessage('Puzzle reset!', 'info');
   }

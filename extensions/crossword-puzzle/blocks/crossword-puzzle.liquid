@@ -35,8 +35,50 @@
   <div class="crossword-wrapper">
     <div class="crossword-grid-wrapper">
       <div class="crossword-grid" id="crossword-grid"></div>
+
+      <div class="crossword-controls">
+        <button id="check-answers" class="btn btn-primary">Check Answers</button>
+        <div class="reveal-dropdown" id="reveal-dropdown">
+          <button id="reveal-toggle" class="btn btn-secondary reveal-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+            Reveal
+            <svg class="reveal-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="reveal-menu" id="reveal-menu" role="menu">
+            <button class="reveal-menu-item" id="reveal-letter" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                <text x="8" y="10.5" text-anchor="middle" fill="currentColor" font-size="7" font-weight="600">A</text>
+              </svg>
+              Letter
+            </button>
+            <button class="reveal-menu-item" id="reveal-word" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="0.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
+                <rect x="5.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
+                <rect x="10.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
+              </svg>
+              Word
+            </button>
+            <div class="reveal-menu-divider"></div>
+            <button class="reveal-menu-item" id="reveal-puzzle" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2"/>
+                <line x1="5.5" y1="1" x2="5.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="10.5" y1="1" x2="10.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="1" y1="5.5" x2="15" y2="5.5" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="1" y1="10.5" x2="15" y2="10.5" stroke="currentColor" stroke-width="0.8"/>
+              </svg>
+              Puzzle
+            </button>
+          </div>
+        </div>
+        <button id="reset-puzzle" class="btn btn-secondary">Reset</button>
+      </div>
+
       <div class="crossword-timer">
-        <span class="timer-label">Time:</span>
+        <span class="timer-label">⏱</span>
         <span id="timer-display">00:00</span>
       </div>
     </div>
@@ -52,12 +94,6 @@
         <div id="down-clues"></div>
       </div>
     </div>
-  </div>
-
-  <div class="crossword-controls">
-    <button id="check-answers" class="btn btn-primary">Check Answers</button>
-    <button id="show-solution" class="btn btn-secondary">Show Solution</button>
-    <button id="reset-puzzle" class="btn btn-secondary">Reset</button>
   </div>
 
   <div id="crossword-message" class="crossword-message"></div>
@@ -103,6 +139,12 @@
         <button class="keyboard-key" data-key="L">L</button>
       </div>
       <div class="keyboard-row">
+        <button class="keyboard-key keyboard-key-dismiss" id="keyboard-dismiss" data-key="Dismiss" aria-label="Hide keyboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M6 7L12 13L18 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 13L12 19L18 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <button class="keyboard-key" data-key="Z">Z</button>
         <button class="keyboard-key" data-key="X">X</button>
         <button class="keyboard-key" data-key="C">C</button>
