@@ -6,6 +6,8 @@ const BASE_PATH = "v1/generic";
 
 class CrosswordPuzzle {
   constructor() {
+    this.containerElement = document.querySelector('.crossword-container');
+    this.rotateOverlayElement = document.getElementById('crossword-rotate-overlay');
     this.gridElement = document.getElementById('crossword-grid');
     this.acrossCluesElement = document.getElementById('across-clues');
     this.downCluesElement = document.getElementById('down-clues');
@@ -35,8 +37,56 @@ class CrosswordPuzzle {
     this.lastClickTime = 0;
     this.currentCell = null;
 
+    // Mobile orientation guard
+    this.mobileLandscapeMediaQuery = window.matchMedia('(orientation: landscape)');
+    this.mobilePointerQuery = window.matchMedia('(pointer: coarse)');
+    this.boundOrientationHandler = this.updateMobileOrientationState.bind(this);
+
+    this.bindOrientationEvents();
+    this.updateMobileOrientationState();
+
     // Initialize asynchronously
     this.initialize();
+  }
+
+  bindOrientationEvents() {
+    if (this.mobileLandscapeMediaQuery && this.mobileLandscapeMediaQuery.addEventListener) {
+      this.mobileLandscapeMediaQuery.addEventListener('change', this.boundOrientationHandler);
+    } else if (this.mobileLandscapeMediaQuery && this.mobileLandscapeMediaQuery.addListener) {
+      this.mobileLandscapeMediaQuery.addListener(this.boundOrientationHandler);
+    }
+
+    window.addEventListener('resize', this.boundOrientationHandler);
+    window.addEventListener('orientationchange', this.boundOrientationHandler);
+  }
+
+  updateMobileOrientationState() {
+    if (!this.containerElement || !this.rotateOverlayElement) return;
+
+    const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const isLandscape = viewportWidth > viewportHeight;
+
+    const hasTouch =
+      ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) ||
+      ('ontouchstart' in window);
+
+    const coarsePointer = this.mobilePointerQuery ? this.mobilePointerQuery.matches : false;
+
+    // Don't gate by 768px: many phones in landscape exceed that width in CSS pixels.
+    // Instead, treat touch/coarse-pointer devices with a phone-like shortest side as mobile.
+    const shortestSide = Math.min(viewportWidth, viewportHeight);
+    const isPhoneLikeViewport = shortestSide <= 900;
+    const isMobileDevice = isPhoneLikeViewport && (hasTouch || coarsePointer);
+
+    const isBlocked = isMobileDevice && isLandscape;
+    this.containerElement.classList.toggle('mobile-landscape-blocked', isBlocked);
+
+    if (!isBlocked) return;
+
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
   }
 
   async initialize() {

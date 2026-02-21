@@ -1,6 +1,12 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
 <div class="crossword-container" data-difficulty="{{ block.settings.difficulty }}">
+  <div id="crossword-rotate-overlay" class="mobile-rotate-overlay" aria-live="polite">
+    <div class="mobile-rotate-overlay-content">
+      To continue playing crossword, please rotate your phone
+    </div>
+  </div>
+
   <h2 class="crossword-title">{{ block.settings.title }}</h2>
 
   <div class="crossword-wrapper">
