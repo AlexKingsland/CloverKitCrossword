@@ -45,7 +45,7 @@
   overflow: hidden;
   padding: 20px;
   background: #fff;
-  max-height: 1600px;
+  max-height: 5000px;
   opacity: 1;
   transition: max-height 0.35s ease, opacity 0.25s ease;
 }
@@ -496,4 +496,157 @@
     font-size: 1.5em;
     margin-bottom: 20px;
   }
+}
+
+/* Mobile Keyboard */
+.mobile-keyboard {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #d3d9e0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(100%);
+  transition: transform 0.3s ease-in-out;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-keyboard.visible {
+  transform: translateY(0);
+}
+
+.keyboard-clue-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #b8d4f1 0%, #a8c7e7 100%);
+  padding: 5px 8px;
+  gap: 6px;
+  border-bottom: 1px solid #93b8da;
+}
+
+.keyboard-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: #1a1a1a;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.keyboard-nav-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.keyboard-clue-text {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1.3;
+  padding: 0 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.keyboard-keys {
+  padding: 8px 4px;
+  background: #d3d9e0;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.keyboard-row:last-child {
+  margin-bottom: 0;
+}
+
+.keyboard-key {
+  min-width: 32px;
+  height: 42px;
+  background: #ffffff;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+  font-size: 18px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  max-width: 36px;
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keyboard-key:active {
+  background: #d0d0d0;
+  transform: scale(0.95);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.keyboard-key-backspace {
+  max-width: 52px;
+  background: #acb5bd;
+  color: #ffffff;
+}
+
+.keyboard-key-backspace:active {
+  background: #96a1aa;
+}
+
+.keyboard-key-backspace svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Show keyboard on mobile devices only */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-keyboard {
+    display: block;
+  }
+}
+
+/* Adjust for smaller mobile screens */
+@media (max-width: 400px) {
+  .keyboard-key {
+    min-width: 28px;
+    height: 38px;
+    font-size: 16px;
+    max-width: 32px;
+  }
+  
+  .keyboard-clue-text {
+    font-size: 14px;
+  }
+  
+  .keyboard-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Adjust layout when keyboard is visible on mobile */
+.crossword-container.keyboard-visible .crossword-collapsible-content {
+  padding-bottom: 260px;
 }

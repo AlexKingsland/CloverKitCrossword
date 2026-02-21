@@ -62,6 +62,63 @@
 
   <div id="crossword-message" class="crossword-message"></div>
   </div>
+
+  <!-- Custom Mobile Keyboard -->
+  <div id="mobile-keyboard" class="mobile-keyboard">
+    <div class="keyboard-clue-bar">
+      <button class="keyboard-nav-btn" id="keyboard-prev-clue" aria-label="Previous clue">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="keyboard-clue-text" id="keyboard-clue-text">Select a cell to start</div>
+      <button class="keyboard-nav-btn" id="keyboard-next-clue" aria-label="Next clue">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="keyboard-keys">
+      <div class="keyboard-row">
+        <button class="keyboard-key" data-key="Q">Q</button>
+        <button class="keyboard-key" data-key="W">W</button>
+        <button class="keyboard-key" data-key="E">E</button>
+        <button class="keyboard-key" data-key="R">R</button>
+        <button class="keyboard-key" data-key="T">T</button>
+        <button class="keyboard-key" data-key="Y">Y</button>
+        <button class="keyboard-key" data-key="U">U</button>
+        <button class="keyboard-key" data-key="I">I</button>
+        <button class="keyboard-key" data-key="O">O</button>
+        <button class="keyboard-key" data-key="P">P</button>
+      </div>
+      <div class="keyboard-row">
+        <button class="keyboard-key" data-key="A">A</button>
+        <button class="keyboard-key" data-key="S">S</button>
+        <button class="keyboard-key" data-key="D">D</button>
+        <button class="keyboard-key" data-key="F">F</button>
+        <button class="keyboard-key" data-key="G">G</button>
+        <button class="keyboard-key" data-key="H">H</button>
+        <button class="keyboard-key" data-key="J">J</button>
+        <button class="keyboard-key" data-key="K">K</button>
+        <button class="keyboard-key" data-key="L">L</button>
+      </div>
+      <div class="keyboard-row">
+        <button class="keyboard-key" data-key="Z">Z</button>
+        <button class="keyboard-key" data-key="X">X</button>
+        <button class="keyboard-key" data-key="C">C</button>
+        <button class="keyboard-key" data-key="V">V</button>
+        <button class="keyboard-key" data-key="B">B</button>
+        <button class="keyboard-key" data-key="N">N</button>
+        <button class="keyboard-key" data-key="M">M</button>
+        <button class="keyboard-key keyboard-key-backspace" data-key="Backspace">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M21 4H8L2 12L8 20H21C21.5304 20 22.0391 19.7893 22.4142 19.4142C22.7893 19.0391 23 18.5304 23 18V6C23 5.46957 22.7893 4.96086 22.4142 4.58579C22.0391 4.21071 21.5304 4 21 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 10L10 14M10 10L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="{{ 'crossword-puzzle.js' | asset_url }}" defer></script>

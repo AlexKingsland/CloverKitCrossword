@@ -41,6 +41,14 @@ class CrosswordPuzzle {
     this.selectedWord = null;
     this.lastClickTime = 0;
     this.currentCell = null;
+    this.currentClueNumber = null;
+
+    // Mobile keyboard properties
+    this.isMobileDevice = this.detectMobileDevice();
+    this.mobileKeyboard = document.getElementById('mobile-keyboard');
+    this.keyboardClueText = document.getElementById('keyboard-clue-text');
+    this.keyboardPrevBtn = document.getElementById('keyboard-prev-clue');
+    this.keyboardNextBtn = document.getElementById('keyboard-next-clue');
 
     // Mobile orientation guard
     this.mobileLandscapeMediaQuery = window.matchMedia('(orientation: landscape)');
@@ -259,8 +267,277 @@ class CrosswordPuzzle {
     this.renderClues();
     this.bindEvents();
     
+    // Initialize mobile keyboard if on mobile device
+    if (this.isMobileDevice) {
+      this.initMobileKeyboard();
+    }
+    
     // Start timer
     this.startTimer();
+  }
+
+  detectMobileDevice() {
+    // Check if device has touch support and coarse pointer (mobile)
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const coarsePointer = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    const isMobile = hasTouch && coarsePointer;
+    console.log('🔍 Mobile Detection:', {
+      hasTouch,
+      coarsePointer,
+      isMobile,
+      userAgent: navigator.userAgent
+    });
+    return isMobile;
+  }
+
+  initMobileKeyboard() {
+    if (!this.mobileKeyboard) return;
+
+    // Bind keyboard key events using touchstart for instant response
+    const keys = this.mobileKeyboard.querySelectorAll('.keyboard-key');
+    keys.forEach(key => {
+      key.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const keyValue = key.dataset.key;
+        this.handleMobileKeyPress(keyValue);
+      }, { passive: false });
+      // Fallback click for non-touch
+      key.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    // Bind navigation buttons using touchstart for instant response
+    if (this.keyboardPrevBtn) {
+      this.keyboardPrevBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.navigateToPreviousClue();
+      }, { passive: false });
+    }
+
+    if (this.keyboardNextBtn) {
+      this.keyboardNextBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.navigateToNextClue();
+      }, { passive: false });
+    }
+
+    // Swipe-down on keyboard to dismiss it
+    let swipeStartY = null;
+    const SWIPE_THRESHOLD = 40; // px
+
+    this.mobileKeyboard.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        swipeStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    this.mobileKeyboard.addEventListener('touchmove', (e) => {
+      if (swipeStartY === null || e.touches.length !== 1) return;
+      const deltaY = e.touches[0].clientY - swipeStartY;
+      if (deltaY > SWIPE_THRESHOLD) {
+        swipeStartY = null;
+        this.hideMobileKeyboard();
+      }
+    }, { passive: true });
+
+    this.mobileKeyboard.addEventListener('touchend', () => {
+      swipeStartY = null;
+    }, { passive: true });
+
+    // Dismiss keyboard when the user scrolls (but not during programmatic scrolls)
+    this._programmaticScroll = false;
+    window.addEventListener('scroll', () => {
+      if (this._programmaticScroll) return;
+      if (this.mobileKeyboard && this.mobileKeyboard.classList.contains('visible')) {
+        this.hideMobileKeyboard();
+      }
+    }, { passive: true });
+
+    // Handle outside taps to hide keyboard (but not grid/clues/keyboard)
+    document.addEventListener('click', (e) => {
+      const isGridClick = e.target.closest('#crossword-grid');
+      const isClueClick = e.target.closest('.crossword-clues');
+      const isKeyboardClick = e.target.closest('#mobile-keyboard');
+      
+      if (!isGridClick && !isClueClick && !isKeyboardClick) {
+        this.hideMobileKeyboard();
+      }
+    });
+  }
+
+  showMobileKeyboard() {
+    if (this.mobileKeyboard) {
+      this.mobileKeyboard.classList.add('visible');
+      // Add bottom padding so content isn't hidden behind keyboard
+      if (this.containerElement) {
+        this.containerElement.classList.add('keyboard-visible');
+      }
+    }
+  }
+
+  hideMobileKeyboard() {
+    if (this.mobileKeyboard) {
+      this.mobileKeyboard.classList.remove('visible');
+      if (this.containerElement) {
+        this.containerElement.classList.remove('keyboard-visible');
+      }
+    }
+  }
+
+  updateKeyboardClue() {
+    if (!this.keyboardClueText || !this.selectedWord || !this.currentCell) return;
+
+    const clueNum = this.getClueNumberForWord(this.selectedWord, this.currentDirection);
+    if (clueNum) {
+      const clueText = this.currentDirection === 'across' 
+        ? this.currentPuzzle.acrossClues[clueNum]
+        : this.currentPuzzle.downClues[clueNum];
+      
+      if (clueText) {
+        this.keyboardClueText.textContent = `${clueNum}. ${clueText}`;
+      }
+    } else {
+      this.keyboardClueText.textContent = 'Select a cell to start';
+    }
+  }
+
+  handleMobileKeyPress(key) {
+    if (!this.currentCell) return;
+
+    if (key === 'Backspace') {
+      this.handleBackspace(this.currentCell.row, this.currentCell.col);
+      this.updateKeyboardClue();
+    } else if (key.length === 1) {
+      // Insert letter
+      const { row, col } = this.currentCell;
+      this.userInputs[row][col] = key.toUpperCase();
+      
+      const input = this.getInputAt(row, col);
+      if (input) {
+        input.value = key.toUpperCase();
+      }
+      
+      // Auto-advance to next cell
+      this.advanceToNextCell(row, col);
+      this.updateKeyboardClue();
+    }
+  }
+
+  navigateToPreviousClue() {
+    const allClues = this.getAllCluesOrdered();
+    if (allClues.length === 0) return;
+
+    const currentClueNum = this.getCurrentClueNumber();
+
+    // If no clue is selected yet, jump to the first clue
+    if (!currentClueNum) {
+      this.navigateToClue(allClues[0].num, allClues[0].direction);
+      return;
+    }
+
+    const currentIndex = allClues.findIndex(c => c.num === currentClueNum && c.direction === this.currentDirection);
+    
+    let targetClue;
+    if (currentIndex > 0) {
+      targetClue = allClues[currentIndex - 1];
+    } else {
+      // Wrap to last clue
+      targetClue = allClues[allClues.length - 1];
+    }
+    
+    if (targetClue) {
+      this.navigateToClue(targetClue.num, targetClue.direction);
+    }
+  }
+
+  navigateToNextClue() {
+    const allClues = this.getAllCluesOrdered();
+    if (allClues.length === 0) return;
+
+    const currentClueNum = this.getCurrentClueNumber();
+
+    // If no clue is selected yet, jump to the first clue
+    if (!currentClueNum) {
+      this.navigateToClue(allClues[0].num, allClues[0].direction);
+      return;
+    }
+
+    const currentIndex = allClues.findIndex(c => c.num === currentClueNum && c.direction === this.currentDirection);
+    
+    let targetClue;
+    if (currentIndex >= 0 && currentIndex < allClues.length - 1) {
+      targetClue = allClues[currentIndex + 1];
+    } else {
+      // Wrap to first clue
+      targetClue = allClues[0];
+    }
+    
+    if (targetClue) {
+      this.navigateToClue(targetClue.num, targetClue.direction);
+    }
+  }
+
+  navigateToClue(clueNum, direction) {
+    // Get position from cluePositions
+    const position = this.currentPuzzle.cluePositions[clueNum];
+    if (!position) return;
+    
+    // Reset click timing so navigation is never interpreted as a double-tap
+    // direction toggle (same guard used in handleClueClick)
+    this.lastClickTime = 0;
+
+    // Set direction BEFORE calling handleCellClick so word selection is correct
+    this.currentDirection = direction;
+    this.handleCellClick(position.row, position.col);
+
+    // Re-assert direction and clue number after handleCellClick, because
+    // handleCellClick may have flipped them via double-click detection or
+    // direction fallback logic.
+    this.currentDirection = direction;
+    this.currentClueNumber = clueNum;
+    
+    // Only focus on desktop
+    if (!this.isMobileDevice) {
+      const input = this.getInputAt(position.row, position.col);
+      if (input) input.focus();
+    }
+    
+    this.highlightClue(clueNum);
+    this.updateKeyboardClue();
+  }
+
+  getAllCluesOrdered() {
+    const clues = [];
+    
+    // Add all across clues
+    Object.keys(this.currentPuzzle.acrossClues).forEach(num => {
+      clues.push({ num, direction: 'across' });
+    });
+    
+    // Add all down clues
+    Object.keys(this.currentPuzzle.downClues).forEach(num => {
+      clues.push({ num, direction: 'down' });
+    });
+    
+    // Sort by clue number
+    return clues.sort((a, b) => {
+      const numA = parseInt(a.num);
+      const numB = parseInt(b.num);
+      if (numA !== numB) return numA - numB;
+      // If same number, across comes before down
+      return a.direction === 'across' ? -1 : 1;
+    });
+  }
+
+  getCurrentClueNumber() {
+    if (this.currentClueNumber) return this.currentClueNumber;
+    if (!this.selectedWord) return null;
+    return this.getClueNumberForWord(this.selectedWord, this.currentDirection);
   }
 
   startTimer() {
@@ -413,11 +690,26 @@ class CrosswordPuzzle {
     // Get the starting cell of the word
     const startCell = wordCells[0];
     
-    // Find if there's a clue number at this position with matching direction
+    // First try strict direction match at this start cell
     for (const [clueNum, position] of Object.entries(this.currentPuzzle.cluePositions)) {
       if (position.row === startCell.row && 
           position.col === startCell.col && 
           position.direction === direction) {
+        return clueNum;
+      }
+    }
+
+    // Fallback: some puzzle payloads only store one direction in cluePositions
+    // for shared start cells. If the start cell matches and this clue exists
+    // in the requested direction's clue map, use that clue number.
+    for (const [clueNum, position] of Object.entries(this.currentPuzzle.cluePositions)) {
+      if (position.row !== startCell.row || position.col !== startCell.col) continue;
+
+      const existsInDirection = direction === 'across'
+        ? Object.prototype.hasOwnProperty.call(this.currentPuzzle.acrossClues, clueNum)
+        : Object.prototype.hasOwnProperty.call(this.currentPuzzle.downClues, clueNum);
+
+      if (existsInDirection) {
         return clueNum;
       }
     }
@@ -457,31 +749,21 @@ class CrosswordPuzzle {
       // Highlight corresponding clue
       const clueNum = this.getClueNumberForWord(word, this.currentDirection);
       if (clueNum) {
+        this.currentClueNumber = clueNum;
         this.highlightClue(clueNum);
+      } else {
+        this.currentClueNumber = null;
       }
     }
     
     this.currentCell = { row, col };
     
     // Select the text in the input for easy override (desktop only)
-    const input = this.getInputAt(row, col);
-    if (input && input.value) {
-      const isTouch =
-        window.matchMedia &&
-        window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-
-      if (!isTouch) {
-        // Desktop: selecting makes typing overwrite existing letter
+    // On mobile, skip entirely - no focus/select/setSelectionRange to avoid iOS keyboard
+    if (!this.isMobileDevice) {
+      const input = this.getInputAt(row, col);
+      if (input && input.value) {
         input.select();
-      } else {
-        // Mobile: avoid selection UI; just place caret at end (or do nothing)
-        // If you keep caret hidden via CSS, this still avoids the blue highlight.
-        try {
-          const len = input.value.length;
-          input.setSelectionRange(len, len); // caret at end, no highlight
-        } catch (e) {
-          // ignore
-        }
       }
     }
   }
@@ -497,7 +779,10 @@ class CrosswordPuzzle {
       const nextCell = this.selectedWord[currentIndex + 1];
       const nextInput = this.getInputAt(nextCell.row, nextCell.col);
       if (nextInput) {
-        nextInput.focus();
+        // Only focus on desktop - on mobile, focus triggers iOS keyboard
+        if (!this.isMobileDevice) {
+          nextInput.focus();
+        }
         this.handleCellClick(nextCell.row, nextCell.col);
       }
     }
@@ -530,30 +815,61 @@ class CrosswordPuzzle {
           input.dataset.row = row;
           input.dataset.col = col;
 
-          input.addEventListener('click', () => {
-            this.handleCellClick(row, col);
-          });
+          // Setup event listeners based on device type
+          if (this.isMobileDevice) {
+            // Mobile: prevent native keyboard
+            input.setAttribute('readonly', 'readonly');
+            input.setAttribute('inputmode', 'none');
+            
+            // Use touchstart for immediate response on mobile
+            input.addEventListener('touchstart', (e) => {
+              e.preventDefault();
+              this.handleCellClick(row, col);
+              this.showMobileKeyboard();
+              this.updateKeyboardClue();
+            });
+            
+            // Also handle click for mobile browsers that don't support touch
+            input.addEventListener('click', (e) => {
+              e.preventDefault();
+              this.handleCellClick(row, col);
+              this.showMobileKeyboard();
+              this.updateKeyboardClue();
+            });
+            
+            // Prevent focus from triggering keyboard
+            input.addEventListener('focus', (e) => {
+              e.preventDefault();
+              e.target.blur();
+            });
+            
+          } else {
+            // Desktop: normal keyboard input
+            input.addEventListener('click', () => {
+              this.handleCellClick(row, col);
+            });
 
-          input.addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase();
-            
-            // Only keep the last character typed (replaces any existing character)
-            if (value.length > 1) {
-              value = value.slice(-1);
-            }
-            
-            this.userInputs[row][col] = value;
-            e.target.value = value;
-            
-            // Auto-advance to next cell if a letter was entered
-            if (value) {
-              this.advanceToNextCell(row, col);
-            }
-          });
+            input.addEventListener('input', (e) => {
+              let value = e.target.value.toUpperCase();
+              
+              // Only keep the last character typed (replaces any existing character)
+              if (value.length > 1) {
+                value = value.slice(-1);
+              }
+              
+              this.userInputs[row][col] = value;
+              e.target.value = value;
+              
+              // Auto-advance to next cell if a letter was entered
+              if (value) {
+                this.advanceToNextCell(row, col);
+              }
+            });
 
-          input.addEventListener('keydown', (e) => {
-            this.handleKeyDown(e, row, col);
-          });
+            input.addEventListener('keydown', (e) => {
+              this.handleKeyDown(e, row, col);
+            });
+          }
 
           cell.appendChild(input);
 
@@ -609,6 +925,10 @@ class CrosswordPuzzle {
       if (e.target.classList.contains('clue-item')) {
         const clueNum = e.target.dataset.clue;
         this.handleClueClick(clueNum);
+        // Update keyboard clue bar when a clue is clicked
+        if (this.isMobileDevice) {
+          this.updateKeyboardClue();
+        }
       }
     });
   }
@@ -625,18 +945,44 @@ class CrosswordPuzzle {
       return;
     }
     
-    // Set direction and select the starting cell
+    // Reset click timing so clue navigation is never interpreted as
+    // a double-tap direction toggle on the same cell.
+    this.lastClickTime = 0;
+
+    // Set direction BEFORE calling handleCellClick so word selection is correct
     this.currentDirection = direction;
+    this.currentClueNumber = clueNum;
     this.handleCellClick(position.row, position.col);
     
-    // Focus the input at that position
-    const input = this.getInputAt(position.row, position.col);
-    if (input) {
-      input.focus();
+    // Only focus on desktop - on mobile, focus triggers iOS keyboard
+    if (!this.isMobileDevice) {
+      const input = this.getInputAt(position.row, position.col);
+      if (input) {
+        input.focus();
+      }
     }
     
     // Highlight the clue (already done by handleCellClick, but ensure it)
     this.highlightClue(clueNum);
+
+    if (this.isMobileDevice) {
+      this.showMobileKeyboard();
+      this.updateKeyboardClue();
+      // Scroll the grid into view so the user sees the highlighted word
+      this.scrollToGrid();
+    }
+  }
+
+  scrollToGrid() {
+    if (!this.gridElement) return;
+    // Suppress scroll-dismiss while we programmatically scroll
+    this._programmaticScroll = true;
+    this.gridElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Clear the flag after the smooth scroll finishes (~500ms)
+    clearTimeout(this._scrollTimer);
+    this._scrollTimer = setTimeout(() => {
+      this._programmaticScroll = false;
+    }, 600);
   }
 
   handleKeyDown(e, row, col) {
@@ -703,7 +1049,9 @@ class CrosswordPuzzle {
         const prevCell = this.selectedWord[currentIndex - 1];
         const prevInput = this.getInputAt(prevCell.row, prevCell.col);
         if (prevInput) {
-          prevInput.focus();
+          if (!this.isMobileDevice) {
+            prevInput.focus();
+          }
           this.handleCellClick(prevCell.row, prevCell.col);
         }
         return;
@@ -740,7 +1088,9 @@ class CrosswordPuzzle {
         this.currentPuzzle.answers[prevRow][prevCol] !== null) {
       const prevInput = this.getInputAt(prevRow, prevCol);
       if (prevInput) {
-        prevInput.focus();
+        if (!this.isMobileDevice) {
+          prevInput.focus();
+        }
         this.handleCellClick(prevRow, prevCol);
       }
     }
