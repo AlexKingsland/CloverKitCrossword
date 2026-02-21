@@ -100,6 +100,20 @@ class CrosswordPuzzle {
       this.closeButton.addEventListener('click', () => this.setCollapsedState(true));
     }
 
+    // Title click to minimize (only when expanded)
+    if (this.titleElement) {
+      this.titleElement.addEventListener('click', () => {
+        if (this.containerElement && this.containerElement.classList.contains('is-expanded')) {
+          this.setCollapsedState(true);
+        }
+      });
+      this.titleElement.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && this.containerElement && this.containerElement.classList.contains('is-expanded')) {
+          e.preventDefault();
+          this.setCollapsedState(true);
+        }
+      });
+    }
   }
 
   setCollapsedState(isCollapsed) {

@@ -8,27 +8,27 @@
 
 .crossword-close-button {
   position: absolute;
-  top: 12px;
+  top: 8px;
   right: 12px;
   z-index: 10;
   display: none;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #d2d5d9;
-  border-radius: 50%;
-  color: #202223;
-  font-size: 18px;
-  line-height: 1;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #b0b0b0;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: color 0.2s ease;
 }
 
 .crossword-close-button:hover {
-  background: #ffffff;
-  transform: scale(1.05);
+  color: #808080;
+}
+
+.crossword-close-button:active {
+  color: #505050;
 }
 
 .crossword-close-button:focus-visible {
@@ -42,6 +42,7 @@
 
 .crossword-collapsible-content {
   position: relative;
+  z-index: 1; /* Contain frosted cover & close button below storefront navbar */
   overflow: hidden;
   padding: 20px;
   background: #fff;
