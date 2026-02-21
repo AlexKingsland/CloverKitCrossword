@@ -16,7 +16,13 @@ class CrosswordPuzzle {
     this.gridElement = document.getElementById('crossword-grid');
     this.acrossCluesElement = document.getElementById('across-clues');
     this.downCluesElement = document.getElementById('down-clues');
-    this.checkButton = document.getElementById('check-answers');
+    this.submitButton = document.getElementById('submit-puzzle');
+    this.checkDropdown = document.getElementById('check-dropdown');
+    this.checkToggle = document.getElementById('check-toggle');
+    this.checkMenu = document.getElementById('check-menu');
+    this.checkLetterBtn = document.getElementById('check-letter');
+    this.checkWordBtn = document.getElementById('check-word');
+    this.checkPuzzleBtn = document.getElementById('check-puzzle');
     this.revealDropdown = document.getElementById('reveal-dropdown');
     this.revealToggle = document.getElementById('reveal-toggle');
     this.revealMenu = document.getElementById('reveal-menu');
@@ -975,8 +981,42 @@ class CrosswordPuzzle {
   }
 
   bindEvents() {
-    this.checkButton.addEventListener('click', () => this.checkAnswers());
+    // Submit button (next to timer) — full puzzle check + completion
+    if (this.submitButton) {
+      this.submitButton.addEventListener('click', () => this.submitPuzzle());
+    }
     this.resetButton.addEventListener('click', () => this.resetPuzzle());
+
+    // Check dropdown toggle
+    if (this.checkToggle) {
+      this.checkToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleCheckMenu();
+      });
+    }
+
+    // Check menu items
+    if (this.checkLetterBtn) {
+      this.checkLetterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.checkLetter();
+        this.closeCheckMenu();
+      });
+    }
+    if (this.checkWordBtn) {
+      this.checkWordBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.checkWord();
+        this.closeCheckMenu();
+      });
+    }
+    if (this.checkPuzzleBtn) {
+      this.checkPuzzleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.checkPuzzle();
+        this.closeCheckMenu();
+      });
+    }
 
     // Reveal dropdown toggle
     if (this.revealToggle) {
@@ -1009,26 +1049,29 @@ class CrosswordPuzzle {
       });
     }
 
-    // Close reveal menu when clicking outside
+    // Close menus when clicking outside
     document.addEventListener('click', (e) => {
       if (this.revealDropdown && !this.revealDropdown.contains(e.target)) {
         this.closeRevealMenu();
+      }
+      if (this.checkDropdown && !this.checkDropdown.contains(e.target)) {
+        this.closeCheckMenu();
       }
 
       if (e.target.classList.contains('clue-item')) {
         const clueNum = e.target.dataset.clue;
         this.handleClueClick(clueNum);
-        // Update keyboard clue bar when a clue is clicked
         if (this.isMobileDevice) {
           this.updateKeyboardClue();
         }
       }
     });
 
-    // Close reveal menu on Escape key
+    // Close menus on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeRevealMenu();
+        this.closeCheckMenu();
       }
     });
   }
@@ -1320,11 +1363,148 @@ class CrosswordPuzzle {
     return cell ? cell.querySelector('input') : null;
   }
 
-  checkAnswers() {
-    // Don't allow checking if already solved
-    if (this.puzzleCompleted) {
+  // --- Check Dropdown ---
+
+  toggleCheckMenu() {
+    if (!this.checkMenu || !this.checkToggle) return;
+    const isOpen = this.checkMenu.classList.contains('open');
+    if (isOpen) {
+      this.closeCheckMenu();
+    } else {
+      this.openCheckMenu();
+    }
+  }
+
+  openCheckMenu() {
+    if (!this.checkMenu || !this.checkToggle) return;
+    this.checkMenu.classList.add('open');
+    this.checkToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  closeCheckMenu() {
+    if (!this.checkMenu || !this.checkToggle) return;
+    this.checkMenu.classList.remove('open');
+    this.checkToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  // --- Check Actions ---
+
+  clearCheckIndicators() {
+    const gridSize = this.currentPuzzle.answers.length;
+    for (let i = 0; i < this.gridElement.children.length; i++) {
+      this.gridElement.children[i].classList.remove('incorrect', 'correct-check');
+    }
+  }
+
+  applyCellCheckClass(row, col, className) {
+    const gridSize = this.currentPuzzle.answers.length;
+    const cellIndex = row * gridSize + col;
+    const cellElement = this.gridElement.children[cellIndex];
+    if (cellElement) {
+      cellElement.classList.add(className);
+    }
+  }
+
+  checkLetter() {
+    if (!this.currentCell) {
+      this.showMessage('Select a cell first', 'info');
       return;
     }
+
+    this.clearCheckIndicators();
+    const { row, col } = this.currentCell;
+    const ans = this.currentPuzzle.answers?.[row]?.[col];
+
+    if (typeof ans !== 'string' || ans.length !== 1) return;
+
+    if (!this.userInputs[row][col]) {
+      this.showMessage('Cell is empty', 'info');
+      return;
+    }
+
+    if (this.userInputs[row][col] === ans) {
+      this.applyCellCheckClass(row, col, 'correct-check');
+      this.showMessage('Correct!', 'success');
+    } else {
+      this.applyCellCheckClass(row, col, 'incorrect');
+      this.showMessage('Incorrect', 'error');
+    }
+
+    // Auto-clear indicators after a delay
+    setTimeout(() => this.clearCheckIndicators(), 3000);
+  }
+
+  checkWord() {
+    if (!this.selectedWord || this.selectedWord.length === 0) {
+      this.showMessage('Select a word first', 'info');
+      return;
+    }
+
+    this.clearCheckIndicators();
+    let allCorrect = true;
+    let hasContent = false;
+
+    this.selectedWord.forEach(({ row, col }) => {
+      const ans = this.currentPuzzle.answers?.[row]?.[col];
+      if (typeof ans !== 'string' || ans.length !== 1) return;
+
+      if (this.userInputs[row][col]) {
+        hasContent = true;
+        if (this.userInputs[row][col] === ans) {
+          this.applyCellCheckClass(row, col, 'correct-check');
+        } else {
+          this.applyCellCheckClass(row, col, 'incorrect');
+          allCorrect = false;
+        }
+      } else {
+        allCorrect = false;
+      }
+    });
+
+    if (!hasContent) {
+      this.showMessage('Word is empty', 'info');
+    } else if (allCorrect) {
+      this.showMessage('Word is correct!', 'success');
+    } else {
+      this.showMessage('Some letters are incorrect', 'error');
+    }
+
+    setTimeout(() => this.clearCheckIndicators(), 3000);
+  }
+
+  checkPuzzle() {
+    this.clearCheckIndicators();
+    const gridSize = this.currentPuzzle.answers.length;
+    let correct = 0;
+    let total = 0;
+    let filled = 0;
+
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const ans = this.currentPuzzle.answers?.[row]?.[col];
+        if (typeof ans === 'string' && ans.length === 1) {
+          total++;
+          if (this.userInputs[row][col]) {
+            filled++;
+            if (this.userInputs[row][col] === ans) {
+              correct++;
+              this.applyCellCheckClass(row, col, 'correct-check');
+            } else {
+              this.applyCellCheckClass(row, col, 'incorrect');
+            }
+          }
+        }
+      }
+    }
+
+    this.showMessage(`${correct}/${total} correct (${filled} filled)`, correct === total ? 'success' : 'info');
+    setTimeout(() => this.clearCheckIndicators(), 4000);
+  }
+
+  // --- Submit (full puzzle validation + completion) ---
+
+  submitPuzzle() {
+    if (this.puzzleCompleted) return;
 
     let correct = 0;
     let total = 0;
@@ -1347,14 +1527,16 @@ class CrosswordPuzzle {
       this.markAsSolved();
       this.showCompletionBanner();
     } else {
-      this.showMessage(`Correct: ${correct}/${total}. Keep trying!`, 'info');
+      this.showMessage(`${correct}/${total} correct. Keep trying!`, 'info');
     }
   }
 
   markAsSolved() {
-    this.checkButton.disabled = true;
-    this.checkButton.textContent = 'Solved!';
-    this.checkButton.classList.add('btn-solved');
+    if (this.submitButton) {
+      this.submitButton.disabled = true;
+      this.submitButton.textContent = 'Solved!';
+      this.submitButton.classList.add('btn-solved');
+    }
   }
 
   resetPuzzle() {

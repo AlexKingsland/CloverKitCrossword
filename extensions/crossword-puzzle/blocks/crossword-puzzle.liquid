@@ -37,7 +37,42 @@
       <div class="crossword-grid" id="crossword-grid"></div>
 
       <div class="crossword-controls">
-        <button id="check-answers" class="btn btn-primary">Check Answers</button>
+        <div class="check-dropdown" id="check-dropdown">
+          <button id="check-toggle" class="btn btn-secondary check-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+            Check
+            <svg class="check-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="check-menu" id="check-menu" role="menu">
+            <button class="check-menu-item" id="check-letter" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M8 5.5L10 10.5M6 10.5L8 5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              </svg>
+              Letter
+            </button>
+            <button class="check-menu-item" id="check-word" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="0.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
+                <rect x="5.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
+                <rect x="10.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
+              </svg>
+              Word
+            </button>
+            <div class="check-menu-divider"></div>
+            <button class="check-menu-item" id="check-puzzle" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2"/>
+                <line x1="5.5" y1="1" x2="5.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="10.5" y1="1" x2="10.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="1" y1="5.5" x2="15" y2="5.5" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="1" y1="10.5" x2="15" y2="10.5" stroke="currentColor" stroke-width="0.8"/>
+              </svg>
+              Puzzle
+            </button>
+          </div>
+        </div>
         <div class="reveal-dropdown" id="reveal-dropdown">
           <button id="reveal-toggle" class="btn btn-secondary reveal-toggle" type="button" aria-haspopup="true" aria-expanded="false">
             Reveal
@@ -78,8 +113,11 @@
       </div>
 
       <div class="crossword-timer">
-        <span class="timer-label">⏱</span>
-        <span id="timer-display">00:00</span>
+        <div class="timer-inner">
+          <span class="timer-label">⏱</span>
+          <span id="timer-display">00:00</span>
+        </div>
+        <button id="submit-puzzle" class="btn btn-primary btn-submit">Submit</button>
       </div>
     </div>
 

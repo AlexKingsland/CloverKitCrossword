@@ -118,25 +118,49 @@
 }
 
 .crossword-timer {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  background: #f6f6f7;
+  border: 1px solid #d2d5d9;
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.timer-inner {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 0;
+  padding: 7px 14px;
 }
 
 .timer-label {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   color: #616161;
 }
 
 #timer-display {
-  font-family: 'Courier New', monospace;
-  font-size: 18px;
-  font-weight: bold;
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 600;
   color: #202223;
-  min-width: 50px;
+  min-width: 42px;
+  letter-spacing: 0.02em;
+}
+
+/* --- Submit Button in Timer --- */
+
+.btn-submit {
+  margin: 0;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 0;
+  border: none;
+  border-left: 1px solid #d2d5d9;
+  letter-spacing: 0.01em;
 }
 
 .completion-banner {
@@ -426,6 +450,103 @@
   height: 1px;
   background: #e8e9ea;
   margin: 4px 8px;
+}
+
+/* --- Check Dropdown --- */
+
+.check-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.check-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.check-chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.check-toggle[aria-expanded="true"] .check-chevron {
+  transform: rotate(180deg);
+}
+
+.check-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid #d2d5d9;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  z-index: 20;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.check-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.check-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #202223;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.check-menu-item:hover {
+  background: #f1f2f4;
+}
+
+.check-menu-item:active {
+  background: #e4e5e7;
+}
+
+.check-menu-item svg {
+  flex-shrink: 0;
+  color: #616161;
+}
+
+.check-menu-item:hover svg {
+  color: #202223;
+}
+
+.check-menu-divider {
+  height: 1px;
+  background: #e8e9ea;
+  margin: 4px 8px;
+}
+
+/* --- Incorrect Cell Indicator (from Check feature) --- */
+
+.crossword-cell.incorrect .crossword-cell-input {
+  color: #d32f2f;
+}
+
+.crossword-cell.correct-check .crossword-cell-input {
+  color: #2e7d32;
 }
 
 /* --- Revealed Cell Indicator --- */
