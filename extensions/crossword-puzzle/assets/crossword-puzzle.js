@@ -7,6 +7,8 @@ const BASE_PATH = "v1/generic";
 class CrosswordPuzzle {
   constructor() {
     this.containerElement = document.querySelector('.crossword-container');
+    this.titleElement = document.querySelector('.crossword-title');
+    this.storefrontDailyTitle = "Daily Crossword";
     this.rotateOverlayElement = document.getElementById('crossword-rotate-overlay');
     this.collapsibleContentElement = document.getElementById('crossword-collapsible-content');
     this.collapsedCoverButton = document.getElementById('crossword-collapsed-cover');
@@ -47,11 +49,26 @@ class CrosswordPuzzle {
 
     this.bindOrientationEvents();
     this.updateMobileOrientationState();
+    this.applyResolvedTitle();
     this.bindCollapseEvents();
     this.setCollapsedState(true);
 
     // Initialize asynchronously
     this.initialize();
+  }
+
+  applyResolvedTitle() {
+    if (!this.titleElement) return;
+
+    const configuredTitle = this.titleElement.textContent ? this.titleElement.textContent.trim() : '';
+    if (configuredTitle) return;
+
+    const storefrontName = this.containerElement && this.containerElement.dataset.storefrontName
+      ? this.containerElement.dataset.storefrontName.trim()
+      : '';
+
+    this.storefrontDailyTitle = storefrontName ? `${storefrontName}'s Daily Crossword` : this.storefrontDailyTitle;
+    this.titleElement.textContent = this.storefrontDailyTitle;
   }
 
   bindCollapseEvents() {
@@ -62,6 +79,7 @@ class CrosswordPuzzle {
     if (this.closeButton) {
       this.closeButton.addEventListener('click', () => this.setCollapsedState(true));
     }
+
   }
 
   setCollapsedState(isCollapsed) {

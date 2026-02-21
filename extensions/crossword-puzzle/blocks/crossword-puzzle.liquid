@@ -1,6 +1,10 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
-<div class="crossword-container is-collapsed" data-difficulty="{{ block.settings.difficulty }}">
+<div
+  class="crossword-container is-collapsed"
+  data-difficulty="{{ block.settings.difficulty }}"
+  data-storefront-name="{{ shop.name | escape }}"
+>
   <div id="crossword-rotate-overlay" class="mobile-rotate-overlay" aria-live="polite">
     <div class="mobile-rotate-overlay-content">
       To continue playing crossword, please rotate your phone
@@ -14,7 +18,7 @@
       type="button"
       aria-label="Open crossword"
     >
-      <span>Play The Daily Crossword!</span>
+      <span>{{ block.settings.minimized_cover_text }}</span>
     </button>
 
   <button
@@ -60,7 +64,7 @@
   </div>
 </div>
 
-{{ 'crossword-puzzle.js' | asset_url | script_tag }}
+<script src="{{ 'crossword-puzzle.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
@@ -71,7 +75,13 @@
       "type": "text",
       "id": "title",
       "label": "Title",
-      "default": "Daily Crossword"
+      "info": "Leave blank for default title"
+    },
+    {
+      "type": "text",
+      "id": "minimized_cover_text",
+      "label": "Minimized cover text",
+      "default": "Play The Daily Crossword!"
     },
     {
       "type": "select",
