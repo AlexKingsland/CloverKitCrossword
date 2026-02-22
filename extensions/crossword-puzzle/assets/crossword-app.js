@@ -289,6 +289,25 @@
       }
     }
 
+    findNextAnswerCell(row, col, reverse = false) {
+      const gridSize = this.currentPuzzle.answers.length;
+      const totalCells = gridSize * gridSize;
+      const startIndex = row * gridSize + col;
+
+      for (let step = 1; step < totalCells; step++) {
+        const offset = reverse ? -step : step;
+        const wrappedIndex = (startIndex + offset + totalCells) % totalCells;
+        const nextRow = Math.floor(wrappedIndex / gridSize);
+        const nextCol = wrappedIndex % gridSize;
+
+        if (this.currentPuzzle.answers[nextRow][nextCol] !== null) {
+          return { row: nextRow, col: nextCol };
+        }
+      }
+
+      return null;
+    }
+
     handleKeyDown(e, row, col) {
       const { key } = e;
       const gridSize = this.currentPuzzle.answers.length;
@@ -299,6 +318,19 @@
           e.preventDefault();
           this.handleBackspace(row, col);
           return;
+        case 'Tab': {
+          e.preventDefault();
+          const nextCell = this.findNextAnswerCell(row, col, e.shiftKey);
+          if (nextCell) {
+            const nextInput = this.getInputAt(nextCell.row, nextCell.col);
+            if (nextInput) {
+              nextInput.focus();
+              this.handleCellClick(nextCell.row, nextCell.col);
+              nextInput.select();
+            }
+          }
+          return;
+        }
         case 'ArrowUp':
           newRow = Math.max(0, row - 1);
           this.currentDirection = 'down';
