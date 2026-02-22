@@ -1,5 +1,13 @@
 // Shared crossword UI/logic utilities
 (function () {
+  function normalizeAnswerForComparison(value) {
+    if (typeof value !== 'string') return '';
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase();
+  }
+
   function isAnswerLetter(value) {
     return typeof value === 'string' && value.length === 1;
   }
@@ -20,6 +28,7 @@
   }
 
   window.CrosswordUtils = {
+    normalizeAnswerForComparison,
     isAnswerLetter,
     getCellIndex,
     setMenuOpenState,

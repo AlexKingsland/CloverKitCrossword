@@ -1,6 +1,13 @@
 // Check / Reveal / Submit actions
 (function () {
   function applyActionsModule(proto) {
+    function sameAnswer(userValue, answerValue) {
+      return (
+        window.CrosswordUtils.normalizeAnswerForComparison(userValue) ===
+        window.CrosswordUtils.normalizeAnswerForComparison(answerValue)
+      );
+    }
+
     proto.bindActionEvents = function bindActionEvents() {
       if (this.submitButton) {
         this.addTrackedListener(this.submitButton, 'click', () => this.submitPuzzle());
@@ -72,7 +79,7 @@
       const ans = this.currentPuzzle.answers?.[row]?.[col];
       if (!this.isAnswerLetter(ans)) return;
       if (!this.userInputs[row][col]) return this.showMessage('Cell is empty', 'info');
-      if (this.userInputs[row][col] === ans) {
+      if (sameAnswer(this.userInputs[row][col], ans)) {
         this.applyCellCheckClass(row, col, 'correct-check');
         this.showMessage('Correct!', 'success');
       } else {
@@ -92,7 +99,7 @@
         if (!this.isAnswerLetter(ans)) return;
         if (this.userInputs[row][col]) {
           hasContent = true;
-          if (this.userInputs[row][col] === ans) {
+          if (sameAnswer(this.userInputs[row][col], ans)) {
             this.applyCellCheckClass(row, col, 'correct-check');
           } else {
             this.applyCellCheckClass(row, col, 'incorrect');
@@ -117,7 +124,7 @@
         total++;
         if (this.userInputs[row][col]) {
           filled++;
-          if (this.userInputs[row][col] === ans) {
+          if (sameAnswer(this.userInputs[row][col], ans)) {
             correct++;
             this.applyCellCheckClass(row, col, 'correct-check');
           } else {
@@ -134,7 +141,7 @@
       const { row, col } = this.currentCell;
       const ans = this.currentPuzzle.answers?.[row]?.[col];
       if (!this.isAnswerLetter(ans)) return;
-      if (this.userInputs[row][col] === ans) return this.showMessage('Already correct!', 'info');
+      if (sameAnswer(this.userInputs[row][col], ans)) return this.showMessage('Already correct!', 'info');
       this.userInputs[row][col] = ans;
       this.revealedCells.add(`${row},${col}`);
       const input = this.getInputAt(row, col);
@@ -149,7 +156,7 @@
       this.selectedWord.forEach(({ row, col }) => {
         const ans = this.currentPuzzle.answers?.[row]?.[col];
         if (!this.isAnswerLetter(ans)) return;
-        if (this.userInputs[row][col] !== ans) {
+        if (!sameAnswer(this.userInputs[row][col], ans)) {
           alreadyComplete = false;
           this.userInputs[row][col] = ans;
           this.revealedCells.add(`${row},${col}`);
@@ -163,7 +170,7 @@
 
     proto.revealPuzzle = function revealPuzzle() {
       this.forEachAnswerCell((row, col, ans) => {
-        if (this.userInputs[row][col] !== ans) this.revealedCells.add(`${row},${col}`);
+        if (!sameAnswer(this.userInputs[row][col], ans)) this.revealedCells.add(`${row},${col}`);
         this.userInputs[row][col] = ans;
       });
       this.renderGrid();
@@ -176,7 +183,7 @@
       let total = 0;
       this.forEachAnswerCell((row, col, ans) => {
         total++;
-        if (this.userInputs[row][col] === ans) correct++;
+        if (sameAnswer(this.userInputs[row][col], ans)) correct++;
       });
       if (correct === total) {
         this.stopTimer();
