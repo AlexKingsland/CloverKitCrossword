@@ -106,10 +106,20 @@
         }, { passive: false });
       }
 
+      const SCROLL_HIDE_DELTA_THRESHOLD = 24;
       this._programmaticScroll = false;
+      this._lastScrollY = window.scrollY || window.pageYOffset || 0;
       this.addTrackedListener(window, 'scroll', () => {
+        const currentScrollY = window.scrollY || window.pageYOffset || 0;
+        const scrollDelta = currentScrollY - this._lastScrollY;
+        this._lastScrollY = currentScrollY;
+
         if (this._programmaticScroll) return;
-        if (this.mobileKeyboard && this.mobileKeyboard.classList.contains('visible')) this.hideMobileKeyboard();
+
+        const isKeyboardVisible = this.mobileKeyboard && this.mobileKeyboard.classList.contains('visible');
+        const isDownwardScroll = scrollDelta > 0;
+        const exceedsThreshold = scrollDelta >= SCROLL_HIDE_DELTA_THRESHOLD;
+        if (isKeyboardVisible && isDownwardScroll && exceedsThreshold) this.hideMobileKeyboard();
       }, { passive: true });
 
       this.addTrackedListener(document, 'click', (e) => {
@@ -122,6 +132,7 @@
 
     proto.showMobileKeyboard = function showMobileKeyboard() {
       if (!this.mobileKeyboard) return;
+      this._lastScrollY = window.scrollY || window.pageYOffset || 0;
       this.mobileKeyboard.classList.add('visible');
       if (this.containerElement) this.containerElement.classList.add('keyboard-visible');
     };
@@ -140,7 +151,10 @@
         return;
       }
       const clueText = this.currentDirection === 'across' ? this.currentPuzzle.acrossClues[clueNum] : this.currentPuzzle.downClues[clueNum];
-      if (clueText) this.keyboardClueText.textContent = `${clueNum}. ${clueText}`;
+      if (clueText) {
+        const displayNum = window.CrosswordUtils.getDisplayClueNumber(clueNum);
+        this.keyboardClueText.textContent = `${displayNum}. ${clueText}`;
+      }
     };
 
     proto.handleMobileKeyPress = function handleMobileKeyPress(key) {
@@ -164,12 +178,7 @@
       const clues = [];
       Object.keys(this.currentPuzzle.acrossClues).forEach((num) => clues.push({ num, direction: 'across' }));
       Object.keys(this.currentPuzzle.downClues).forEach((num) => clues.push({ num, direction: 'down' }));
-      return clues.sort((a, b) => {
-        const numA = parseInt(a.num, 10);
-        const numB = parseInt(b.num, 10);
-        if (numA !== numB) return numA - numB;
-        return a.direction === 'across' ? -1 : 1;
-      });
+      return window.CrosswordUtils.sortClueEntries(clues);
     };
 
     proto.getCurrentClueNumber = function getCurrentClueNumber() {

@@ -77,7 +77,7 @@
             if (clueNumber) {
               const numberSpan = document.createElement('span');
               numberSpan.className = 'crossword-cell-number';
-              numberSpan.textContent = clueNumber;
+              numberSpan.textContent = window.CrosswordUtils.getDisplayClueNumber(clueNumber);
               cell.appendChild(numberSpan);
             }
             if (this.revealedCells.has(`${row},${col}`)) cell.classList.add('revealed');
@@ -89,11 +89,18 @@
     };
 
     proto.renderClues = function renderClues() {
-      this.acrossCluesElement.innerHTML = Object.entries(this.currentPuzzle.acrossClues)
-        .map(([num, clue]) => `<div class="clue-item" data-clue="${num}">${num}. ${clue}</div>`)
+      const acrossEntries = window.CrosswordUtils.sortClueEntries(
+        Object.entries(this.currentPuzzle.acrossClues).map(([num, clue]) => ({ num, clue, direction: 'across' }))
+      );
+      const downEntries = window.CrosswordUtils.sortClueEntries(
+        Object.entries(this.currentPuzzle.downClues).map(([num, clue]) => ({ num, clue, direction: 'down' }))
+      );
+
+      this.acrossCluesElement.innerHTML = acrossEntries
+        .map(({ num, clue }) => `<div class="clue-item" data-clue="${num}">${window.CrosswordUtils.getDisplayClueNumber(num)}. ${clue}</div>`)
         .join('');
-      this.downCluesElement.innerHTML = Object.entries(this.currentPuzzle.downClues)
-        .map(([num, clue]) => `<div class="clue-item" data-clue="${num}">${num}. ${clue}</div>`)
+      this.downCluesElement.innerHTML = downEntries
+        .map(({ num, clue }) => `<div class="clue-item" data-clue="${num}">${window.CrosswordUtils.getDisplayClueNumber(num)}. ${clue}</div>`)
         .join('');
     };
 
