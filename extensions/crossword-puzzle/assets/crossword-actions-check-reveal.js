@@ -13,28 +13,32 @@
         this.addTrackedListener(this.submitButton, 'click', () => this.submitPuzzle());
       }
       if (this.resetButton) {
-        this.addTrackedListener(this.resetButton, 'click', () => this.resetPuzzle());
+        this.addTrackedListener(this.resetButton, 'click', (e) => {
+          e.stopPropagation();
+          this.resetPuzzle();
+          this.closeHelpModal();
+        });
       }
 
       if (this.checkLetterBtn) {
         this.addTrackedListener(this.checkLetterBtn, 'click', (e) => {
           e.stopPropagation();
           this.checkLetter();
-          this.closeCheckMenu();
+          this.closeHelpModal();
         });
       }
       if (this.checkWordBtn) {
         this.addTrackedListener(this.checkWordBtn, 'click', (e) => {
           e.stopPropagation();
           this.checkWord();
-          this.closeCheckMenu();
+          this.closeHelpModal();
         });
       }
       if (this.checkPuzzleBtn) {
         this.addTrackedListener(this.checkPuzzleBtn, 'click', (e) => {
           e.stopPropagation();
           this.checkPuzzle();
-          this.closeCheckMenu();
+          this.closeHelpModal();
         });
       }
 
@@ -42,21 +46,21 @@
         this.addTrackedListener(this.revealLetterBtn, 'click', (e) => {
           e.stopPropagation();
           this.revealLetter();
-          this.closeRevealMenu();
+          this.closeHelpModal();
         });
       }
       if (this.revealWordBtn) {
         this.addTrackedListener(this.revealWordBtn, 'click', (e) => {
           e.stopPropagation();
           this.revealWord();
-          this.closeRevealMenu();
+          this.closeHelpModal();
         });
       }
       if (this.revealPuzzleBtn) {
         this.addTrackedListener(this.revealPuzzleBtn, 'click', (e) => {
           e.stopPropagation();
           this.revealPuzzle();
-          this.closeRevealMenu();
+          this.closeHelpModal();
         });
       }
     };
@@ -115,24 +119,54 @@
       setTimeout(() => this.clearCheckIndicators(), 3000);
     };
 
+    proto.countWords = function countWords() {
+      const words = [];
+      const puzzle = this.currentPuzzle;
+      // Collect all across words
+      Object.keys(puzzle.acrossClues).forEach((clueNum) => {
+        const pos = puzzle.cluePositions[clueNum];
+        if (!pos) return;
+        const cells = this.findWordAt(pos.row, pos.col, 'across');
+        if (cells && cells.length > 0) words.push(cells);
+      });
+      // Collect all down words
+      Object.keys(puzzle.downClues).forEach((clueNum) => {
+        const pos = puzzle.cluePositions[clueNum];
+        if (!pos) return;
+        const cells = this.findWordAt(pos.row, pos.col, 'down');
+        if (cells && cells.length > 0) words.push(cells);
+      });
+      return words;
+    };
+
+    proto.isWordCorrect = function isWordCorrect(wordCells) {
+      return wordCells.every(({ row, col }) => {
+        const ans = this.currentPuzzle.answers?.[row]?.[col];
+        if (!this.isAnswerLetter(ans)) return true;
+        return sameAnswer(this.userInputs[row][col], ans);
+      });
+    };
+
     proto.checkPuzzle = function checkPuzzle() {
       this.clearCheckIndicators();
-      let correct = 0;
-      let total = 0;
-      let filled = 0;
+      // Highlight individual cells for visual feedback
       this.forEachAnswerCell((row, col, ans) => {
-        total++;
         if (this.userInputs[row][col]) {
-          filled++;
           if (sameAnswer(this.userInputs[row][col], ans)) {
-            correct++;
             this.applyCellCheckClass(row, col, 'correct-check');
           } else {
             this.applyCellCheckClass(row, col, 'incorrect');
           }
         }
       });
-      this.showMessage(`${correct}/${total} correct (${filled} filled)`, correct === total ? 'success' : 'info');
+      // Count by words
+      const words = this.countWords();
+      const totalWords = words.length;
+      let correctWords = 0;
+      words.forEach((wordCells) => {
+        if (this.isWordCorrect(wordCells)) correctWords++;
+      });
+      this.showMessage(`${correctWords}/${totalWords} words correct`, correctWords === totalWords ? 'success' : 'info');
       setTimeout(() => this.clearCheckIndicators(), 4000);
     };
 
@@ -179,18 +213,23 @@
 
     proto.submitPuzzle = function submitPuzzle() {
       if (this.puzzleCompleted) return;
-      let correct = 0;
-      let total = 0;
+      const words = this.countWords();
+      const totalWords = words.length;
+      let correctWords = 0;
+      // Also check if every letter is correct for completion
+      let allLettersCorrect = true;
       this.forEachAnswerCell((row, col, ans) => {
-        total++;
-        if (sameAnswer(this.userInputs[row][col], ans)) correct++;
+        if (!sameAnswer(this.userInputs[row][col], ans)) allLettersCorrect = false;
       });
-      if (correct === total) {
+      words.forEach((wordCells) => {
+        if (this.isWordCorrect(wordCells)) correctWords++;
+      });
+      if (allLettersCorrect) {
         this.stopTimer();
         this.markAsSolved();
         this.showCompletionBanner();
       } else {
-        this.showMessage(`${correct}/${total} correct. Keep trying!`, 'info');
+        this.showMessage(`${correctWords}/${totalWords} words correct. Keep trying!`, 'info');
       }
     };
 

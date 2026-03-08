@@ -44,24 +44,11 @@
     return [...entries].sort(compareClueEntries);
   }
 
-  function setMenuOpenState(menu, toggleButton, isOpen) {
-    if (!menu || !toggleButton) return;
-    menu.classList.toggle('open', isOpen);
-    toggleButton.setAttribute('aria-expanded', String(isOpen));
-  }
-
-  function toggleMenu(menu, toggleButton) {
-    if (!menu || !toggleButton) return;
-    setMenuOpenState(menu, toggleButton, !menu.classList.contains('open'));
-  }
-
   window.CrosswordUtils = {
     normalizeAnswerForComparison,
     isAnswerLetter,
     getCellIndex,
     getDisplayClueNumber,
     sortClueEntries,
-    setMenuOpenState,
-    toggleMenu,
   };
 })();

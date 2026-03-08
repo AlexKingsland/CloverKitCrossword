@@ -18,22 +18,34 @@
       this.gridElement = document.getElementById('crossword-grid');
       this.acrossCluesElement = document.getElementById('across-clues');
       this.downCluesElement = document.getElementById('down-clues');
+      this.messageElement = document.getElementById('crossword-message');
+
+      // Toolbar elements
+      this.timerDisplay = document.getElementById('timer-display');
+      this.timerPauseBtn = document.getElementById('timer-pause-btn');
       this.submitButton = document.getElementById('submit-puzzle');
-      this.checkDropdown = document.getElementById('check-dropdown');
-      this.checkToggle = document.getElementById('check-toggle');
-      this.checkMenu = document.getElementById('check-menu');
+      this.toolbarHelpBtn = document.getElementById('toolbar-help-btn');
+      this.toolbarSettingsBtn = document.getElementById('toolbar-settings-btn');
+
+      // Help modal elements
+      this.helpModalOverlay = document.getElementById('help-modal-overlay');
+      this.helpModalClose = document.getElementById('help-modal-close');
+      this.howToPlayBtn = document.getElementById('how-to-play-btn');
+      this.helpInstructions = document.getElementById('help-instructions');
       this.checkLetterBtn = document.getElementById('check-letter');
       this.checkWordBtn = document.getElementById('check-word');
       this.checkPuzzleBtn = document.getElementById('check-puzzle');
-      this.revealDropdown = document.getElementById('reveal-dropdown');
-      this.revealToggle = document.getElementById('reveal-toggle');
-      this.revealMenu = document.getElementById('reveal-menu');
       this.revealLetterBtn = document.getElementById('reveal-letter');
       this.revealWordBtn = document.getElementById('reveal-word');
       this.revealPuzzleBtn = document.getElementById('reveal-puzzle');
       this.resetButton = document.getElementById('reset-puzzle');
-      this.messageElement = document.getElementById('crossword-message');
-      this.timerDisplay = document.getElementById('timer-display');
+
+      // Settings modal elements
+      this.settingsModalOverlay = document.getElementById('settings-modal-overlay');
+      this.settingsModalClose = document.getElementById('settings-modal-close');
+      this.darkModeToggle = document.getElementById('setting-dark-mode');
+      this.skipFilledToggle = document.getElementById('setting-skip-filled');
+      this.nextPuzzleCountdown = document.getElementById('next-puzzle-countdown');
 
       const container = document.querySelector('.crossword-container');
       this.difficulty = container ? container.dataset.difficulty : 'medium';
@@ -63,6 +75,11 @@
       this.mobileLandscapeMediaQuery = window.matchMedia('(orientation: landscape)');
       this.mobilePointerQuery = window.matchMedia('(pointer: coarse)');
       this.boundOrientationHandler = this.updateMobileOrientationState.bind(this);
+
+      // Settings state (persisted in localStorage)
+      this.skipFilledLetters = false;
+      this.darkMode = false;
+      this.loadSettings();
 
       this.bindOrientationEvents();
       this.updateMobileOrientationState();
@@ -279,13 +296,28 @@
     advanceToNextCell(row, col) {
       if (!this.selectedWord) return;
       const currentIndex = this.selectedWord.findIndex((cell) => cell.row === row && cell.col === col);
-      if (currentIndex >= 0 && currentIndex < this.selectedWord.length - 1) {
-        const nextCell = this.selectedWord[currentIndex + 1];
-        const nextInput = this.getInputAt(nextCell.row, nextCell.col);
+      if (currentIndex < 0 || currentIndex >= this.selectedWord.length - 1) return;
+
+      // Find the next cell, optionally skipping filled cells
+      for (let i = currentIndex + 1; i < this.selectedWord.length; i++) {
+        const candidate = this.selectedWord[i];
+        if (this.skipFilledLetters && this.userInputs[candidate.row][candidate.col]) {
+          continue; // skip filled cells
+        }
+        const nextInput = this.getInputAt(candidate.row, candidate.col);
         if (nextInput) {
           if (!this.isMobileDevice) nextInput.focus();
-          this.handleCellClick(nextCell.row, nextCell.col);
+          this.handleCellClick(candidate.row, candidate.col);
         }
+        return;
+      }
+
+      // If skip-filled is on and all remaining cells are filled, just go to the next cell
+      const fallback = this.selectedWord[currentIndex + 1];
+      const fallbackInput = this.getInputAt(fallback.row, fallback.col);
+      if (fallbackInput) {
+        if (!this.isMobileDevice) fallbackInput.focus();
+        this.handleCellClick(fallback.row, fallback.col);
       }
     }
 
@@ -411,6 +443,10 @@
       if (this.timerInterval) {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
+      }
+      if (this._countdownInterval) {
+        clearInterval(this._countdownInterval);
+        this._countdownInterval = null;
       }
       clearTimeout(this._scrollTimer);
 

@@ -35,93 +35,38 @@
 
   <h2 class="crossword-title" id="crossword-title" role="button" tabindex="0" style="cursor: pointer;">{{ block.settings.title }}</h2>
 
+  <!-- ===== TOOLBAR BAR ===== -->
+  <div class="crossword-toolbar" id="crossword-toolbar">
+    <div class="toolbar-center">
+      <span id="timer-display" class="toolbar-timer">00:00</span>
+      <button id="timer-pause-btn" class="toolbar-icon-btn" type="button" aria-label="Pause timer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+          <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="toolbar-right">
+      <button id="toolbar-help-btn" class="toolbar-icon-btn" type="button" aria-label="Get help">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+        </svg>
+      </button>
+      <button id="toolbar-settings-btn" class="toolbar-icon-btn" type="button" aria-label="Settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button id="submit-puzzle" class="toolbar-submit-btn" type="button">Submit</button>
+    </div>
+  </div>
+
   <div class="crossword-wrapper">
     <div class="crossword-grid-wrapper">
       <div class="crossword-grid" id="crossword-grid"></div>
-
-      <div class="crossword-controls">
-        <div class="check-dropdown" id="check-dropdown">
-          <button id="check-toggle" class="btn btn-secondary check-toggle" type="button" aria-haspopup="true" aria-expanded="false">
-            Check
-            <svg class="check-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="check-menu" id="check-menu" role="menu">
-            <button class="check-menu-item" id="check-letter" role="menuitem">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-                <path d="M8 5.5L10 10.5M6 10.5L8 5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-              </svg>
-              Letter
-            </button>
-            <button class="check-menu-item" id="check-word" role="menuitem">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="0.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
-                <rect x="5.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
-                <rect x="10.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
-              </svg>
-              Word
-            </button>
-            <div class="check-menu-divider"></div>
-            <button class="check-menu-item" id="check-puzzle" role="menuitem">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2"/>
-                <line x1="5.5" y1="1" x2="5.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
-                <line x1="10.5" y1="1" x2="10.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
-                <line x1="1" y1="5.5" x2="15" y2="5.5" stroke="currentColor" stroke-width="0.8"/>
-                <line x1="1" y1="10.5" x2="15" y2="10.5" stroke="currentColor" stroke-width="0.8"/>
-              </svg>
-              Puzzle
-            </button>
-          </div>
-        </div>
-        <div class="reveal-dropdown" id="reveal-dropdown">
-          <button id="reveal-toggle" class="btn btn-secondary reveal-toggle" type="button" aria-haspopup="true" aria-expanded="false">
-            Reveal
-            <svg class="reveal-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="reveal-menu" id="reveal-menu" role="menu">
-            <button class="reveal-menu-item" id="reveal-letter" role="menuitem">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-                <text x="8" y="10.5" text-anchor="middle" fill="currentColor" font-size="7" font-weight="600">A</text>
-              </svg>
-              Letter
-            </button>
-            <button class="reveal-menu-item" id="reveal-word" role="menuitem">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="0.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
-                <rect x="5.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
-                <rect x="10.5" y="4" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1"/>
-              </svg>
-              Word
-            </button>
-            <div class="reveal-menu-divider"></div>
-            <button class="reveal-menu-item" id="reveal-puzzle" role="menuitem">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2"/>
-                <line x1="5.5" y1="1" x2="5.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
-                <line x1="10.5" y1="1" x2="10.5" y2="15" stroke="currentColor" stroke-width="0.8"/>
-                <line x1="1" y1="5.5" x2="15" y2="5.5" stroke="currentColor" stroke-width="0.8"/>
-                <line x1="1" y1="10.5" x2="15" y2="10.5" stroke="currentColor" stroke-width="0.8"/>
-              </svg>
-              Puzzle
-            </button>
-          </div>
-        </div>
-        <button id="reset-puzzle" class="btn btn-secondary">Reset</button>
-      </div>
-
-      <div class="crossword-timer">
-        <div class="timer-inner">
-          <span class="timer-label">⏱</span>
-          <span id="timer-display">00:00</span>
-        </div>
-        <button id="submit-puzzle" class="btn btn-primary btn-submit">Submit</button>
-      </div>
     </div>
 
     <div class="crossword-clues">
@@ -138,6 +83,108 @@
   </div>
 
   <div id="crossword-message" class="crossword-message"></div>
+  </div>
+
+  <!-- ===== HELP MODAL (outside collapsible content to avoid overflow clipping) ===== -->
+  <div class="crossword-modal-overlay" id="help-modal-overlay">
+    <div class="crossword-modal help-modal" id="help-modal" role="dialog" aria-labelledby="help-modal-title">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+          </svg>
+          <h3 id="help-modal-title" class="modal-title">Get some help</h3>
+        </div>
+        <button class="modal-close-btn" id="help-modal-close" type="button" aria-label="Close help">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <button class="modal-action-btn" id="how-to-play-btn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+          </svg>
+          How to play
+        </button>
+        <div class="help-instructions" id="help-instructions" style="display: none;">
+          <div class="help-instructions-content">
+            <p><strong>Goal:</strong> Fill in every white square with the correct letter.</p>
+            <p><strong>Navigate:</strong> Click a cell to select it. Click again or double-click to toggle between Across and Down.</p>
+            <p><strong>Type:</strong> Use your keyboard to enter letters. The cursor advances automatically.</p>
+            <p><strong>Clues:</strong> Click a clue in the sidebar to jump to that word on the grid.</p>
+            <p><strong>Check:</strong> Verify your letter, word, or the whole puzzle. Incorrect letters are shown in red.</p>
+            <p><strong>Reveal:</strong> Stuck? Reveal a letter, word, or the entire puzzle. Revealed cells are marked with a blue triangle.</p>
+          </div>
+        </div>
+        <div class="modal-section-label">Check</div>
+        <button class="modal-action-btn" id="check-puzzle" type="button">All</button>
+        <button class="modal-action-btn" id="check-word" type="button">Word</button>
+        <button class="modal-action-btn" id="check-letter" type="button">Letter</button>
+        <div class="modal-section-label">Reveal</div>
+        <button class="modal-action-btn" id="reveal-puzzle" type="button">All</button>
+        <button class="modal-action-btn" id="reveal-word" type="button">Word</button>
+        <button class="modal-action-btn" id="reveal-letter" type="button">Letter</button>
+        <button class="modal-action-btn modal-action-danger" id="reset-puzzle" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Clear board
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS MODAL ===== -->
+  <div class="crossword-modal-overlay" id="settings-modal-overlay">
+    <div class="crossword-modal settings-modal" id="settings-modal" role="dialog" aria-labelledby="settings-modal-title">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h3 id="settings-modal-title" class="modal-title">Settings</h3>
+        </div>
+        <button class="modal-close-btn" id="settings-modal-close" type="button" aria-label="Close settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-label">Dark mode</span>
+            <span class="settings-row-desc">Switch to a dark theme</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-dark-mode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-label">Skip filled letters</span>
+            <span class="settings-row-desc">Jump over cells that already have a letter when typing</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-skip-filled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-countdown">
+          <div class="settings-countdown-label">Next puzzle available in</div>
+          <div class="settings-countdown-time" id="next-puzzle-countdown">--:--:--</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Custom Mobile Keyboard -->

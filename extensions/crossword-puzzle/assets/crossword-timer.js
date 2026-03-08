@@ -1,4 +1,4 @@
-// Timer module for crossword lifecycle
+// Timer module for crossword lifecycle + next puzzle countdown
 (function () {
   function applyTimerModule(proto) {
     proto.startTimer = function startTimer() {
@@ -17,6 +17,7 @@
       this.isPaused = true;
       clearInterval(this.timerInterval);
       this.timerInterval = null;
+      if (this.updatePauseButtonIcon) this.updatePauseButtonIcon();
     };
 
     proto.resumeTimer = function resumeTimer() {
@@ -26,6 +27,7 @@
       this.timerInterval = setInterval(() => {
         this.updateTimer();
       }, 1000);
+      if (this.updatePauseButtonIcon) this.updatePauseButtonIcon();
     };
 
     proto.updateTimer = function updateTimer() {
@@ -48,6 +50,43 @@
       const minutes = Math.floor(this.elapsedTime / 60000);
       const seconds = Math.floor((this.elapsedTime % 60000) / 1000);
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    // --- Next puzzle countdown (countdown to midnight UTC) ---
+
+    proto.startCountdownTimer = function startCountdownTimer() {
+      this.updateCountdownDisplay();
+      this._countdownInterval = setInterval(() => {
+        this.updateCountdownDisplay();
+      }, 1000);
+    };
+
+    proto.stopCountdownTimer = function stopCountdownTimer() {
+      if (this._countdownInterval) {
+        clearInterval(this._countdownInterval);
+        this._countdownInterval = null;
+      }
+    };
+
+    proto.updateCountdownDisplay = function updateCountdownDisplay() {
+      if (!this.nextPuzzleCountdown) return;
+      const now = new Date();
+      const tomorrow = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0, 0, 0, 0
+      ));
+      const diff = tomorrow.getTime() - now.getTime();
+      if (diff <= 0) {
+        this.nextPuzzleCountdown.textContent = '00:00:00';
+        return;
+      }
+      const hours = Math.floor(diff / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      this.nextPuzzleCountdown.textContent =
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
   }
 
