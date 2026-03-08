@@ -262,6 +262,16 @@
   font-size: 1.3em;
 }
 
+.banner-content--incorrect h3 {
+  color: #e67e22;
+}
+
+.banner-subtext {
+  margin: 0 0 20px 0;
+  color: #888;
+  font-size: 1em;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1144,8 +1154,16 @@
   color: #e0e0e0;
 }
 
+.crossword-container.dark-mode .completion-banner .banner-content--incorrect h3 {
+  color: #f0a54a;
+}
+
 .crossword-container.dark-mode .completion-banner .banner-content p {
   color: #aaa;
+}
+
+.crossword-container.dark-mode .banner-subtext {
+  color: #999;
 }
 
 .crossword-container.dark-mode .crossword-collapsed-cover {

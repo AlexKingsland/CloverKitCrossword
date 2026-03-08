@@ -229,7 +229,7 @@
         this.markAsSolved();
         this.showCompletionBanner();
       } else {
-        this.showMessage(`${correctWords}/${totalWords} words correct. Keep trying!`, 'info');
+        this.showIncorrectBanner(correctWords, totalWords);
       }
     };
 

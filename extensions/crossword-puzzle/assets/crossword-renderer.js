@@ -135,6 +135,13 @@
       banner.innerHTML = `<div class="banner-content"><h3>🎉 Congratulations!</h3><p>You completed the crossword in <strong>${timeStr}</strong>!</p><button class="btn btn-primary" onclick="this.closest('.completion-banner').remove()">Close</button></div>`;
       this.containerElement.insertBefore(banner, this.containerElement.firstChild);
     };
+
+    proto.showIncorrectBanner = function showIncorrectBanner(correctWords, totalWords) {
+      const banner = document.createElement('div');
+      banner.className = 'completion-banner';
+      banner.innerHTML = `<div class="banner-content banner-content--incorrect"><h3>Keep trying!</h3><p><strong>${correctWords}/${totalWords}</strong> words correct</p><p class="banner-subtext">Some answers aren\u2019t quite right yet. Keep going!</p><button class="btn btn-primary" onclick="this.closest('.completion-banner').remove()">Continue</button></div>`;
+      this.containerElement.insertBefore(banner, this.containerElement.firstChild);
+    };
   }
 
   window.CrosswordRendererModule = { applyRendererModule };
