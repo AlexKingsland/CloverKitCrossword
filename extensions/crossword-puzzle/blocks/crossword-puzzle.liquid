@@ -1,9 +1,22 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
+{%- assign accent = block.settings.accent_color -%}
+<style>
+  .crossword-container {
+    --cw-accent: {{ accent }};
+    --cw-accent-light: {{ accent | color_lighten: 30 }};
+    --cw-accent-lighter: {{ accent | color_lighten: 42 }};
+    --cw-accent-dark: {{ accent | color_darken: 30 }};
+    --cw-accent-darker: {{ accent | color_darken: 40 }};
+    --cw-accent-muted: {{ accent | color_modify: 'alpha', 0.15 }};
+  }
+</style>
+
 <div
   class="crossword-container is-collapsed"
   data-difficulty="{{ block.settings.difficulty }}"
   data-storefront-name="{{ shop.name | escape }}"
+  data-accent-color="{{ accent }}"
 >
   <div id="crossword-rotate-overlay" class="mobile-rotate-overlay" aria-live="polite">
     <div class="mobile-rotate-overlay-content">
@@ -298,6 +311,13 @@
         }
       ],
       "default": "medium"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#4A90D9",
+      "info": "Primary color for the toolbar, cell highlights, buttons, and keyboard"
     }
   ]
 }

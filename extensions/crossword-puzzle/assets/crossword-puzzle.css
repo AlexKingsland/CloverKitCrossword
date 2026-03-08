@@ -33,7 +33,7 @@
 }
 
 .crossword-close-button:focus-visible {
-  outline: 2px solid #0066cc;
+  outline: 2px solid var(--cw-accent, #0066cc);
   outline-offset: 2px;
 }
 
@@ -129,7 +129,7 @@
   align-items: center;
   justify-content: flex-end;
   position: relative;
-  background: #b8d4f1;
+  background: var(--cw-accent-light, #b8d4f1);
   border: none;
   border-radius: 0;
   padding: 6px 16px;
@@ -203,15 +203,15 @@
   font-weight: 600;
   border: 1px solid var(--cw-border, #d2d5d9);
   border-radius: 8px;
-  background: var(--cw-submit-bg, #0066cc);
-  color: var(--cw-submit-text, #ffffff);
+  background: var(--cw-accent, #0066cc);
+  color: #ffffff;
   cursor: pointer;
   transition: background-color 0.15s ease;
   letter-spacing: 0.01em;
 }
 
 .toolbar-submit-btn:hover {
-  background: var(--cw-submit-hover, #0052a3);
+  background: var(--cw-accent-dark, #0052a3);
 }
 
 .toolbar-submit-btn.btn-solved {
@@ -258,7 +258,7 @@
 }
 
 .banner-content strong {
-  color: #0066cc;
+  color: var(--cw-accent, #0066cc);
   font-size: 1.3em;
 }
 
@@ -318,11 +318,11 @@
 }
 
 .crossword-cell.highlighted {
-  background: #e3f2fd !important;
+  background: var(--cw-accent-lighter, #e3f2fd) !important;
 }
 
 .crossword-cell.current {
-  background: #90caf9 !important;
+  background: var(--cw-accent-light, #90caf9) !important;
 }
 
 .crossword-cell-number {
@@ -352,7 +352,7 @@
 }
 
 .crossword-cell-input:focus {
-  outline: 2px solid #0066cc;
+  outline: 2px solid var(--cw-accent, #0066cc);
   outline-offset: -2px;
 }
 
@@ -411,7 +411,7 @@
 }
 
 .clue-item.highlight {
-  background: #90caf9;
+  background: var(--cw-accent-light, #90caf9);
   color: #202223;
   font-weight: 600;
 }
@@ -642,7 +642,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: #0066cc;
+  background: var(--cw-accent, #0066cc);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -707,7 +707,7 @@
   height: 0;
   border-style: solid;
   border-width: 0 0 7px 7px;
-  border-color: transparent transparent #90caf9 transparent;
+  border-color: transparent transparent var(--cw-accent-light, #90caf9) transparent;
   pointer-events: none;
   z-index: 1;
 }
@@ -724,12 +724,12 @@
 }
 
 .btn-primary {
-  background: #0066cc;
+  background: var(--cw-accent, #0066cc);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #0052a3;
+  background: var(--cw-accent-dark, #0052a3);
 }
 
 .btn-solved {
@@ -768,7 +768,7 @@
 }
 
 .message-info {
-  color: #0066cc;
+  color: var(--cw-accent, #0066cc);
 }
 
 /* Responsive design */
@@ -878,10 +878,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, #b8d4f1 0%, #a8c7e7 100%);
+  background: linear-gradient(180deg, var(--cw-accent-light, #b8d4f1) 0%, var(--cw-accent, #a8c7e7) 100%);
   padding: 5px 8px;
   gap: 6px;
-  border-bottom: 1px solid #93b8da;
+  border-bottom: 1px solid var(--cw-accent-dark, #93b8da);
 }
 
 .keyboard-nav-btn {
@@ -1033,8 +1033,8 @@
 }
 
 .crossword-container.dark-mode .crossword-toolbar {
-  background: #1a3352;
-  border-color: #1a3352;
+  background: var(--cw-accent-dark, #1a3352);
+  border-color: var(--cw-accent-dark, #1a3352);
 }
 
 .crossword-container.dark-mode .toolbar-timer {
@@ -1069,11 +1069,11 @@
 }
 
 .crossword-container.dark-mode .crossword-cell.highlighted {
-  background: #1a3352 !important;
+  background: var(--cw-accent-dark, #1a3352) !important;
 }
 
 .crossword-container.dark-mode .crossword-cell.current {
-  background: #264d7a !important;
+  background: var(--cw-accent-darker, #264d7a) !important;
 }
 
 .crossword-container.dark-mode .crossword-cell-input {
@@ -1098,7 +1098,7 @@
 }
 
 .crossword-container.dark-mode .crossword-cell-input:focus {
-  outline-color: #4a9eff;
+  outline-color: var(--cw-accent, #4a9eff);
 }
 
 .crossword-container.dark-mode .clues-across h3,
@@ -1116,7 +1116,7 @@
 }
 
 .crossword-container.dark-mode .clue-item.highlight {
-  background: #264d7a;
+  background: var(--cw-accent-darker, #264d7a);
   color: #e0e0e0;
 }
 
@@ -1133,7 +1133,7 @@
 }
 
 .crossword-container.dark-mode .message-info {
-  color: #42a5f5;
+  color: var(--cw-accent-light, #42a5f5);
 }
 
 .crossword-container.dark-mode .completion-banner .banner-content {
@@ -1280,8 +1280,8 @@
 
 .crossword-container.dark-mode ~ .mobile-keyboard .keyboard-clue-bar,
 .crossword-container.dark-mode .mobile-keyboard .keyboard-clue-bar {
-  background: linear-gradient(180deg, #1a3352 0%, #162a42 100%);
-  border-bottom-color: #0f1f30;
+  background: linear-gradient(180deg, var(--cw-accent-dark, #1a3352) 0%, var(--cw-accent-darker, #162a42) 100%);
+  border-bottom-color: var(--cw-accent-darker, #0f1f30);
 }
 
 .crossword-container.dark-mode ~ .mobile-keyboard .keyboard-clue-text,
