@@ -9,6 +9,12 @@
     --cw-accent-dark: {{ accent | color_darken: 30 }};
     --cw-accent-darker: {{ accent | color_darken: 40 }};
     --cw-accent-muted: {{ accent | color_modify: 'alpha', 0.15 }};
+    --cw-accent-bg: {{ accent | color_modify: 'alpha', 0.06 }};
+  }
+
+  /* Full-width accent background on the Shopify section wrapper */
+  .shopify-section:has(.crossword-container) {
+    background: {{ accent | color_modify: 'alpha', 0.06 }};
   }
 </style>
 
