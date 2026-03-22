@@ -221,8 +221,12 @@
       this.renderClues();
       this.bindEvents();
       if (this.isMobileDevice) this.initMobileKeyboard();
-      this._resizeHandler = () => this.updateCellSize();
+      this._resizeHandler = () => {
+        this.updateCellSize();
+        this.syncCluesHeight();
+      };
       this.addTrackedListener(window, 'resize', this._resizeHandler);
+      this.syncCluesHeight();
       this.startTimer();
     }
 

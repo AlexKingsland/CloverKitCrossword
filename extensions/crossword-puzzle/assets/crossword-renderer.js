@@ -136,6 +136,31 @@
       this.containerElement.insertBefore(banner, this.containerElement.firstChild);
     };
 
+    proto.syncCluesHeight = function syncCluesHeight() {
+      const gridWrapper = this.gridElement ? this.gridElement.closest('.crossword-grid-wrapper') : null;
+      if (!this.containerElement || !gridWrapper) return;
+
+      const acrossEl = this.containerElement.querySelector('.clues-across');
+      const downEl = this.containerElement.querySelector('.clues-down');
+      if (!acrossEl && !downEl) return;
+
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        // On mobile the layout is stacked — cap each clue column at 300px
+        const mobileHeight = '300px';
+        if (acrossEl) acrossEl.style.maxHeight = mobileHeight;
+        if (downEl) downEl.style.maxHeight = mobileHeight;
+      } else {
+        // On desktop, match each column to the grid wrapper height
+        const gridHeight = gridWrapper.offsetHeight;
+        if (gridHeight > 0) {
+          const h = gridHeight + 'px';
+          if (acrossEl) acrossEl.style.maxHeight = h;
+          if (downEl) downEl.style.maxHeight = h;
+        }
+      }
+    };
+
     proto.showIncorrectBanner = function showIncorrectBanner(correctWords, totalWords) {
       const banner = document.createElement('div');
       banner.className = 'completion-banner';

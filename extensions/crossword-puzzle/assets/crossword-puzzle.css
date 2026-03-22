@@ -295,7 +295,7 @@
 .crossword-wrapper {
   display: flex;
   width: 100%;
-  gap: 56px;
+  gap: 20px;
   justify-content: center;
   align-items: flex-start;
   margin-bottom: 30px;
@@ -380,30 +380,80 @@
   flex: 1 1 56%;
   min-width: 420px;
   display: flex;
-  gap: 30px;
+  gap: 20px;
 }
 
 .clues-across,
 .clues-down {
   flex: 1;
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 0;
+  overflow: hidden;
+  /* max-height is set dynamically by JS to match the grid height */
 }
 
 .clues-across h3,
 .clues-down h3 {
-  margin: 0 0 10px 0;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 12px 14px 10px 14px;
   color: #202223;
-  font-size: 1.2em;
-  font-weight: 600;
+  font-size: 1.15em;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Inner scrollable clue list */
+#across-clues,
+#down-clues {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Scrollbar styling for clue lists */
+#across-clues::-webkit-scrollbar,
+#down-clues::-webkit-scrollbar {
+  width: 6px;
+}
+
+#across-clues::-webkit-scrollbar-track,
+#down-clues::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#across-clues::-webkit-scrollbar-thumb,
+#down-clues::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
+}
+
+#across-clues::-webkit-scrollbar-thumb:hover,
+#down-clues::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .clue-item {
-  margin-bottom: 8px;
-  padding: 4px 8px;
-  background: var(--cw-accent-muted, rgba(0, 102, 204, 0.15));
-  border-radius: 4px;
+  margin: 0 14px 8px 14px;
+  padding: 6px 10px;
+  background: transparent;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.clue-item:first-child {
+  margin-top: 10px;
+}
+
+.clue-item:last-child {
+  margin-bottom: 14px;
 }
 
 .clue-item:hover {
@@ -1116,18 +1166,37 @@
   outline-color: var(--cw-accent, #4a9eff);
 }
 
+/* Dark mode clue containers */
+.crossword-container.dark-mode .clues-across,
+.crossword-container.dark-mode .clues-down {
+  background: rgba(42, 42, 42, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.crossword-container.dark-mode #across-clues::-webkit-scrollbar-thumb,
+.crossword-container.dark-mode #down-clues::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.crossword-container.dark-mode #across-clues::-webkit-scrollbar-thumb:hover,
+.crossword-container.dark-mode #down-clues::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 .crossword-container.dark-mode .clues-across h3,
 .crossword-container.dark-mode .clues-down h3 {
   color: #e0e0e0;
+  background: rgba(42, 42, 42, 0.92);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .crossword-container.dark-mode .clue-item {
-  background: #2a2a2a;
+  background: transparent;
   color: #ccc;
 }
 
 .crossword-container.dark-mode .clue-item:hover {
-  background: #333333;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .crossword-container.dark-mode .clue-item.highlight {
