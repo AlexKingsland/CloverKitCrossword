@@ -1022,14 +1022,16 @@
   box-shadow: 0 0 0 rgba(0, 0, 0, 0.15);
 }
 
-.keyboard-key-dismiss,
+.keyboard-key-toggle,
 .keyboard-key-backspace {
   max-width: 52px;
   background: #acb5bd;
   color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
 }
 
-.keyboard-key-dismiss:active,
+.keyboard-key-toggle:active,
 .keyboard-key-backspace:active {
   background: #96a1aa;
 }
@@ -1367,6 +1369,14 @@
 .crossword-container.dark-mode ~ .mobile-keyboard .keyboard-key,
 .crossword-container.dark-mode .mobile-keyboard .keyboard-key {
   background: #3a3a3a;
+  color: #e0e0e0;
+}
+
+.crossword-container.dark-mode ~ .mobile-keyboard .keyboard-key-toggle,
+.crossword-container.dark-mode .mobile-keyboard .keyboard-key-toggle,
+.crossword-container.dark-mode ~ .mobile-keyboard .keyboard-key-backspace,
+.crossword-container.dark-mode .mobile-keyboard .keyboard-key-backspace {
+  background: #555;
   color: #e0e0e0;
 }
 

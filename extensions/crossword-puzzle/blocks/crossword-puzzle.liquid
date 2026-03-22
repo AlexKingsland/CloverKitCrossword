@@ -254,7 +254,8 @@
         </svg>
       </button>
     </div>
-    <div class="keyboard-keys">
+    <!-- Letters keyboard (default) -->
+    <div class="keyboard-keys" id="keyboard-letters">
       <div class="keyboard-row">
         <button class="keyboard-key" data-key="Q">Q</button>
         <button class="keyboard-key" data-key="W">W</button>
@@ -279,12 +280,7 @@
         <button class="keyboard-key" data-key="L">L</button>
       </div>
       <div class="keyboard-row">
-        <button class="keyboard-key keyboard-key-dismiss" id="keyboard-dismiss" data-key="Dismiss" aria-label="Hide keyboard">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M6 7L12 13L18 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M6 13L12 19L18 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+        <button class="keyboard-key keyboard-key-toggle" data-key="ShowNumbers" aria-label="Show numbers and symbols">123</button>
         <button class="keyboard-key" data-key="Z">Z</button>
         <button class="keyboard-key" data-key="X">X</button>
         <button class="keyboard-key" data-key="C">C</button>
@@ -292,6 +288,43 @@
         <button class="keyboard-key" data-key="B">B</button>
         <button class="keyboard-key" data-key="N">N</button>
         <button class="keyboard-key" data-key="M">M</button>
+        <button class="keyboard-key keyboard-key-backspace" data-key="Backspace">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M21 4H8L2 12L8 20H21C21.5304 20 22.0391 19.7893 22.4142 19.4142C22.7893 19.0391 23 18.5304 23 18V6C23 5.46957 22.7893 4.96086 22.4142 4.58579C22.0391 4.21071 21.5304 4 21 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 10L10 14M10 10L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <!-- Numbers & symbols keyboard (hidden) -->
+    <div class="keyboard-keys" id="keyboard-numbers" style="display: none;">
+      <div class="keyboard-row">
+        <button class="keyboard-key" data-key="1">1</button>
+        <button class="keyboard-key" data-key="2">2</button>
+        <button class="keyboard-key" data-key="3">3</button>
+        <button class="keyboard-key" data-key="4">4</button>
+        <button class="keyboard-key" data-key="5">5</button>
+        <button class="keyboard-key" data-key="6">6</button>
+        <button class="keyboard-key" data-key="7">7</button>
+        <button class="keyboard-key" data-key="8">8</button>
+        <button class="keyboard-key" data-key="9">9</button>
+        <button class="keyboard-key" data-key="0">0</button>
+      </div>
+      <div class="keyboard-row">
+        <button class="keyboard-key" data-key="@">@</button>
+        <button class="keyboard-key" data-key="%">%</button>
+        <button class="keyboard-key" data-key="$">$</button>
+        <button class="keyboard-key" data-key="&">&amp;</button>
+        <button class="keyboard-key" data-key="*">*</button>
+        <button class="keyboard-key" data-key="!">!</button>
+        <button class="keyboard-key" data-key="+">+</button>
+        <button class="keyboard-key" data-key="=">=</button>
+      </div>
+      <div class="keyboard-row">
+        <button class="keyboard-key keyboard-key-toggle" data-key="ShowLetters" aria-label="Show letters">abc</button>
+        <button class="keyboard-key" data-key=",">,</button>
+        <button class="keyboard-key" data-key=":">:</button>
+        <button class="keyboard-key" data-key="/">/</button>
         <button class="keyboard-key keyboard-key-backspace" data-key="Backspace">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M21 4H8L2 12L8 20H21C21.5304 20 22.0391 19.7893 22.4142 19.4142C22.7893 19.0391 23 18.5304 23 18V6C23 5.46957 22.7893 4.96086 22.4142 4.58579C22.0391 4.21071 21.5304 4 21 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

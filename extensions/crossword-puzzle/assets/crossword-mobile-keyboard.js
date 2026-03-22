@@ -12,6 +12,10 @@
     proto.initMobileKeyboard = function initMobileKeyboard() {
       if (!this.mobileKeyboard) return;
 
+      // Cache keyboard layout panels
+      this._keyboardLetters = this.mobileKeyboard.querySelector('#keyboard-letters');
+      this._keyboardNumbers = this.mobileKeyboard.querySelector('#keyboard-numbers');
+
       const keys = this.mobileKeyboard.querySelectorAll('.keyboard-key');
       keys.forEach((key) => {
         this.addTrackedListener(key, 'touchstart', (e) => {
@@ -157,7 +161,20 @@
       }
     };
 
+    proto.switchKeyboardLayout = function switchKeyboardLayout(showNumbers) {
+      if (!this._keyboardLetters || !this._keyboardNumbers) return;
+      if (showNumbers) {
+        this._keyboardLetters.style.display = 'none';
+        this._keyboardNumbers.style.display = '';
+      } else {
+        this._keyboardNumbers.style.display = 'none';
+        this._keyboardLetters.style.display = '';
+      }
+    };
+
     proto.handleMobileKeyPress = function handleMobileKeyPress(key) {
+      if (key === 'ShowNumbers') return this.switchKeyboardLayout(true);
+      if (key === 'ShowLetters') return this.switchKeyboardLayout(false);
       if (!this.currentCell) return;
       if (key === 'Dismiss') return this.hideMobileKeyboard();
       if (key === 'Backspace') {
@@ -166,9 +183,10 @@
       }
       if (key.length === 1) {
         const { row, col } = this.currentCell;
-        this.userInputs[row][col] = key.toUpperCase();
+        const value = key.toUpperCase();
+        this.userInputs[row][col] = value;
         const input = this.getInputAt(row, col);
-        if (input) input.value = key.toUpperCase();
+        if (input) input.value = value;
         this.advanceToNextCell(row, col);
         this.updateKeyboardClue();
       }
