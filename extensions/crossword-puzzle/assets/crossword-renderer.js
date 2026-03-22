@@ -7,16 +7,19 @@
       const gapSize = 2;
       const borderSize = 2;
       const wrapper = this.gridElement.closest('.crossword-grid-wrapper') || this.gridElement.parentElement;
-      const containerWidth = wrapper ? wrapper.clientWidth : window.innerWidth;
+      // Use the smaller of wrapper width and viewport width to prevent overflow
+      const wrapperWidth = wrapper ? wrapper.clientWidth : window.innerWidth;
+      const viewportWidth = window.innerWidth;
+      const containerWidth = Math.min(wrapperWidth, viewportWidth);
       const totalGap = (gridSize - 1) * gapSize + borderSize * 2;
       const maxCellSize = 36;
-      const minCellSize = 20;
+      const minCellSize = 12;
       let cellSize = Math.floor((containerWidth - totalGap) / gridSize);
       cellSize = Math.max(minCellSize, Math.min(maxCellSize, cellSize));
       this.gridElement.style.setProperty('--cell-size', `${cellSize}px`);
       const scale = cellSize / maxCellSize;
-      this.gridElement.style.setProperty('--cell-font-size', `${Math.max(11, Math.round(16 * scale))}px`);
-      this.gridElement.style.setProperty('--cell-number-size', `${Math.max(7, Math.round(10 * scale))}px`);
+      this.gridElement.style.setProperty('--cell-font-size', `${Math.max(9, Math.round(16 * scale))}px`);
+      this.gridElement.style.setProperty('--cell-number-size', `${Math.max(6, Math.round(10 * scale))}px`);
     };
 
     proto.renderGrid = function renderGrid() {

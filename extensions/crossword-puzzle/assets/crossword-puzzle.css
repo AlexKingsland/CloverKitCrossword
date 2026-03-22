@@ -5,6 +5,7 @@
   margin: 0 auto;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
 .crossword-close-button {
@@ -842,15 +843,22 @@
 
   .crossword-grid-wrapper {
     width: 100%;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow: hidden;
+  }
+
+  #crossword-grid {
+    max-width: 100%;
   }
 
   .crossword-clues {
     width: 100%;
     flex-direction: column;
     min-width: unset;
+    padding: 0 4px;
   }
 
   .crossword-collapsible-content {
