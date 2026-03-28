@@ -12,9 +12,20 @@ export async function requirePlan(
   minimumPlan: "free" | "starter" | "pro",
 ) {
   const shopRecord = await db.shop.findUnique({ where: { shop } });
-  const currentPlan = shopRecord?.plan ?? "free";
 
-  if ((PLAN_RANK[currentPlan] ?? 0) < (PLAN_RANK[minimumPlan] ?? 0)) {
+  if (!shopRecord?.plan) {
+    throw redirect("/app/pricing");
+  }
+
+  if (
+    shopRecord.plan === "free" &&
+    shopRecord.freeTrialEndsAt != null &&
+    shopRecord.freeTrialEndsAt < new Date()
+  ) {
+    throw redirect("/app/pricing");
+  }
+
+  if ((PLAN_RANK[shopRecord.plan] ?? 0) < (PLAN_RANK[minimumPlan] ?? 0)) {
     throw redirect("/app/pricing");
   }
 

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Shop" ADD COLUMN     "freeTrialEndsAt" TIMESTAMP(3),
+ALTER COLUMN "plan" DROP NOT NULL,
+ALTER COLUMN "plan" DROP DEFAULT;

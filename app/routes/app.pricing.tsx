@@ -52,7 +52,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const planId = formData.get("plan") as string;
 
   const plan = PLANS.find((p) => p.id === planId);
-  if (!plan || plan.price === 0) {
+  if (!plan) return redirect("/app/pricing");
+
+  // Free plan — no Shopify billing, just record a 30-day trial
+  if (plan.price === 0) {
+    const freeTrialEndsAt = new Date();
+    freeTrialEndsAt.setDate(freeTrialEndsAt.getDate() + 30);
+    await prisma.shop.upsert({
+      where: { shop: session.shop },
+      create: { shop: session.shop, plan: "free", freeTrialEndsAt },
+      update: { plan: "free", freeTrialEndsAt, subscriptionId: null, subscriptionStatus: null },
+    });
     return redirect("/app");
   }
 

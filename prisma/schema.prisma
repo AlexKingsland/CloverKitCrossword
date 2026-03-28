@@ -31,11 +31,12 @@ model Session {
 }
 
 model Shop {
-  id                 String   @id @default(cuid())
-  shop               String   @unique
-  plan               String   @default("free")
+  id                 String    @id @default(cuid())
+  shop               String    @unique
+  plan               String?
   subscriptionId     String?
   subscriptionStatus String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  freeTrialEndsAt    DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
