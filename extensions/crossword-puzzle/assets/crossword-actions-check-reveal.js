@@ -229,8 +229,8 @@
         this.markAsSolved();
         this.showCompletionBanner();
         if (window.CloverKitAnalytics) {
-          var shopName = this.containerElement ? this.containerElement.dataset.storefrontName || '' : '';
-          window.CloverKitAnalytics.trackPuzzleCompleted(shopName, this.difficulty, Math.round(this.elapsedTime / 1000));
+          var shopDomain = this.containerElement ? this.containerElement.dataset.shopDomain || '' : '';
+          window.CloverKitAnalytics.trackPuzzleCompleted(shopDomain, this.difficulty, Math.round(this.elapsedTime / 1000));
         }
       } else {
         this.showIncorrectBanner(correctWords, totalWords);

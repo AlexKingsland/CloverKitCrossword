@@ -147,8 +147,8 @@
         this.resumeTimer();
         if (!this._analyticsStartFired && window.CloverKitAnalytics) {
           this._analyticsStartFired = true;
-          var shopName = this.containerElement.dataset.storefrontName || '';
-          window.CloverKitAnalytics.trackPuzzleStarted(shopName, this.difficulty);
+          var shopDomain = this.containerElement.dataset.shopDomain || '';
+          window.CloverKitAnalytics.trackPuzzleStarted(shopDomain, this.difficulty);
         }
       }
     }

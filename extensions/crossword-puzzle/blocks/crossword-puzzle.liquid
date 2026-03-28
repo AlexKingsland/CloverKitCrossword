@@ -21,7 +21,8 @@
 <div
   class="crossword-container is-collapsed"
   data-difficulty="{{ block.settings.difficulty }}"
-  data-storefront-name="{{ shop.permanent_domain | escape }}"
+  data-storefront-name="{{ shop.name | escape }}"
+  data-shop-domain="{{ shop.permanent_domain | escape }}"
   data-accent-color="{{ accent }}"
 >
   <div id="crossword-rotate-overlay" class="mobile-rotate-overlay" aria-live="polite">
