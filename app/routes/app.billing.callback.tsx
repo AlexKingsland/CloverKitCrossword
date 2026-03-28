@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { authenticate } from "../shopify.server";
+import { unauthenticated } from "../shopify.server";
 import prisma from "../db.server";
 
 const PLAN_BY_SUBSCRIPTION_NAME: Record<string, string> = {
@@ -9,21 +9,22 @@ const PLAN_BY_SUBSCRIPTION_NAME: Record<string, string> = {
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const chargeId = url.searchParams.get("charge_id");
+  const shop = url.searchParams.get("shop");
 
-  if (!chargeId) {
+  if (!chargeId || !shop) {
     return redirect("/app/pricing");
   }
 
-  // Activate the subscription
-  const activateResponse = await admin.graphql(
+  const { admin } = await unauthenticated.admin(shop);
+
+  // Subscription is auto-activated on approval — just fetch its current status
+  const response = await admin.graphql(
     `#graphql
-    mutation appSubscriptionActivate($id: ID!) {
-      appSubscriptionActivate(id: $id) {
-        userErrors { field message }
-        appSubscription {
+    query getSubscription($id: ID!) {
+      node(id: $id) {
+        ... on AppSubscription {
           id
           name
           status
@@ -35,8 +36,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
   );
 
-  const activateData = await activateResponse.json();
-  const subscription = activateData.data?.appSubscriptionActivate?.appSubscription;
+  const data = await response.json();
+  const subscription = data.data?.node;
 
   if (!subscription) {
     return redirect("/app/pricing");
@@ -45,9 +46,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const plan = PLAN_BY_SUBSCRIPTION_NAME[subscription.name] ?? "starter";
 
   await prisma.shop.upsert({
-    where: { shop: session.shop },
+    where: { shop },
     create: {
-      shop: session.shop,
+      shop,
       plan,
       subscriptionId: subscription.id,
       subscriptionStatus: subscription.status,
@@ -59,5 +60,5 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
   });
 
-  return redirect("/app");
+  return redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app/pricing`);
 };

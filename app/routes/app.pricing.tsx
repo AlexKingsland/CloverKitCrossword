@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useSubmit } from "react-router";
+import { redirect, useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
@@ -67,7 +68,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     {
       variables: {
         name: `CloverKit Crossword — ${plan.name}`,
-        returnUrl: `${process.env.SHOPIFY_APP_URL}/app/billing/callback`,
+        returnUrl: `${process.env.SHOPIFY_APP_URL}/app/billing/callback?shop=${session.shop}`,
         test: process.env.NODE_ENV !== "production",
         lineItems: [
           {
@@ -90,7 +91,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     throw new Error(result.userErrors[0].message);
   }
 
-  // Persist the pending subscription id so the callback can find it
   await prisma.shop.upsert({
     where: { shop: session.shop },
     create: {
@@ -105,46 +105,81 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     },
   });
 
-  return redirect(result.confirmationUrl);
+  // Return the URL to the client — it must open at the top level to escape the iframe
+  return { confirmationUrl: result.confirmationUrl };
 };
+
+const PLAN_RANK: Record<string, number> = { free: 0, starter: 1, pro: 2 };
 
 export default function PricingPage() {
   const { currentPlan, plans } = useLoaderData<typeof loader>();
-  const submit = useSubmit();
+  const fetcher = useFetcher<typeof action>();
+
+  useEffect(() => {
+    if (fetcher.data && "confirmationUrl" in fetcher.data) {
+      open(fetcher.data.confirmationUrl as string, "_top");
+    }
+  }, [fetcher.data]);
 
   const selectPlan = (planId: string) => {
-    submit({ plan: planId }, { method: "POST" });
+    fetcher.submit({ plan: planId }, { method: "POST" });
   };
 
   return (
     <s-page heading="Choose a plan">
-      <s-layout columns="1-1-1">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "16px",
+          padding: "16px 0",
+        }}
+      >
         {plans.map((plan) => (
-          <s-section key={plan.id} heading={plan.name}>
-            <s-stack direction="block" gap="base">
-              <s-text>
-                {plan.price === 0 ? "Free" : `$${plan.price} / month`}
-              </s-text>
-              <s-paragraph>{plan.description}</s-paragraph>
-              <s-unordered-list>
-                {plan.features.map((f) => (
-                  <s-list-item key={f}>{f}</s-list-item>
-                ))}
-              </s-unordered-list>
-              {currentPlan === plan.id ? (
-                <s-button disabled>Current plan</s-button>
-              ) : (
-                <s-button
-                  variant="primary"
-                  onClick={() => selectPlan(plan.id)}
-                >
-                  {plan.price === 0 ? "Downgrade to Free" : `Upgrade to ${plan.name}`}
-                </s-button>
+          <div
+            key={plan.id}
+            style={{
+              border: currentPlan === plan.id ? "2px solid #008060" : "1px solid #e1e3e5",
+              borderRadius: "12px",
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              background: currentPlan === plan.id ? "#f0faf7" : "#fff",
+            }}
+          >
+            <div style={{ fontSize: "18px", fontWeight: 600 }}>{plan.name}</div>
+            <div style={{ fontSize: "24px", fontWeight: 700, color: "#202223" }}>
+              {plan.price === 0 ? "Free" : `$${plan.price}`}
+              {plan.price > 0 && (
+                <span style={{ fontSize: "14px", fontWeight: 400, color: "#6d7175" }}>
+                  {" "}/ month
+                </span>
               )}
-            </s-stack>
-          </s-section>
+            </div>
+            <div style={{ color: "#6d7175", fontSize: "14px" }}>{plan.description}</div>
+            <ul style={{ margin: 0, paddingLeft: "20px", color: "#202223", fontSize: "14px", flexGrow: 1 }}>
+              {plan.features.map((f) => (
+                <li key={f} style={{ marginBottom: "6px" }}>{f}</li>
+              ))}
+            </ul>
+            {currentPlan === plan.id ? (
+              <s-button disabled>Current plan</s-button>
+            ) : (
+              <s-button
+                variant="primary"
+                onClick={() => selectPlan(plan.id)}
+              >
+                {plan.price === 0
+                  ? "Downgrade to Free"
+                  : PLAN_RANK[plan.id] < PLAN_RANK[currentPlan]
+                  ? `Downgrade to ${plan.name}`
+                  : `Upgrade to ${plan.name}`}
+              </s-button>
+            )}
+          </div>
         ))}
-      </s-layout>
+      </div>
     </s-page>
   );
 }
