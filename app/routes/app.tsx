@@ -24,7 +24,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopRecord.freeTrialEndsAt < new Date();
 
     if (noPlan || freeTrialExpired) {
-      return redirect("/app/pricing");
+      const host = url.searchParams.get("host");
+      return redirect(`/app/pricing${host ? `?host=${host}` : ""}`);
     }
   }
 

@@ -12,6 +12,10 @@ automatically_update_urls_on_dev = true
 api_version = "2026-04"
 
   [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
 
@@ -19,16 +23,9 @@ api_version = "2026-04"
   topics = [ "app_subscriptions/update" ]
   uri = "/webhooks/app/subscriptions_update"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_themes"
 
 [auth]
-redirect_urls = [
-  "https://app.cloverkitstudio.com/api/auth",
-  "http://localhost:3000/api/auth"
-]
+redirect_urls = [ "https://app.cloverkitstudio.com/api/auth" ]
