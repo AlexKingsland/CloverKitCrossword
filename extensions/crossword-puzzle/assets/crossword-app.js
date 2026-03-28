@@ -59,6 +59,7 @@
       this.elapsedTime = 0;
       this.timerInterval = null;
       this.puzzleCompleted = false;
+      this._analyticsStartFired = false;
 
       this.currentDirection = 'across';
       this.selectedWord = null;
@@ -140,8 +141,16 @@
       if (this.collapsibleContentElement) {
         this.collapsibleContentElement.setAttribute('aria-hidden', String(isCollapsed));
       }
-      if (isCollapsed) this.pauseTimer();
-      else this.resumeTimer();
+      if (isCollapsed) {
+        this.pauseTimer();
+      } else {
+        this.resumeTimer();
+        if (!this._analyticsStartFired && window.CloverKitAnalytics) {
+          this._analyticsStartFired = true;
+          var shopName = this.containerElement.dataset.storefrontName || '';
+          window.CloverKitAnalytics.trackPuzzleStarted(shopName, this.difficulty);
+        }
+      }
     }
 
     bindOrientationEvents() {
