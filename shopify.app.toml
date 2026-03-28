@@ -29,4 +29,7 @@ api_version = "2026-04"
 scopes = "read_themes"
 
 [auth]
-redirect_urls = [ "https://app.cloverkitstudio.com/api/auth" ]
+redirect_urls = [
+  "https://app.cloverkitstudio.com/api/auth",
+  "http://localhost:3000/api/auth"
+]
