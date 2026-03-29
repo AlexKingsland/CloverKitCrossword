@@ -179,10 +179,77 @@
       }
     }
 
+    async checkPlanStatus(shopDomain) {
+      try {
+        const appUrl = 'https://app.cloverkitstudio.com';
+        const res = await fetch(`${appUrl}/api/shop-status?shop=${encodeURIComponent(shopDomain)}`);
+        if (!res.ok) return { plan: 'starter', hasAccess: true }; // fail open
+        return await res.json();
+      } catch {
+        return { plan: 'starter', hasAccess: true }; // fail open on network error
+      }
+    }
+
+    showNotActivatedState() {
+      if (!this.containerElement) return;
+      // Clear the loading spinner that was placed in the grid
+      if (this.gridElement) this.gridElement.innerHTML = '';
+      if (this.collapsedCoverButton) {
+        this.collapsedCoverButton.innerHTML =
+          '<span style="display:flex;align-items:center;gap:8px;justify-content:center;opacity:0.65;font-size:14px;">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+          '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>' +
+          '<path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '</svg>' +
+          'Crossword not activated — store plan required' +
+          '</span>';
+        this.collapsedCoverButton.style.cursor = 'default';
+        this.collapsedCoverButton.disabled = true;
+      }
+    }
+
+    applyFreePlanRestrictions() {
+      this.difficulty = 'easy';
+      if (this.containerElement) {
+        this.containerElement.dataset.difficulty = 'easy';
+      }
+      // Add a locked-features banner to the settings modal
+      const modalBody = this.settingsModalOverlay
+        ? this.settingsModalOverlay.querySelector('.modal-body')
+        : null;
+      if (modalBody) {
+        const lockBanner = document.createElement('div');
+        lockBanner.style.cssText =
+          'margin-top:14px;padding:12px 14px;background:#f6f6f7;border-radius:8px;' +
+          'border:1px solid #e1e3e5;display:flex;align-items:flex-start;gap:10px;';
+        lockBanner.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" flex-shrink="0" style="margin-top:1px" aria-hidden="true">' +
+          '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#6d7175" stroke-width="2"/>' +
+          '<path d="M7 11V7a5 5 0 0110 0v4" stroke="#6d7175" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '</svg>' +
+          '<div style="font-size:13px;color:#6d7175;line-height:1.4;">' +
+          '<strong style="color:#202223;">Difficulty &amp; Theme Color</strong><br>' +
+          'Upgrade to Standard or Pro to customize difficulty and accent color.' +
+          '</div>';
+        modalBody.appendChild(lockBanner);
+      }
+    }
+
     async initialize() {
       this.debug('🎯 Initializing crossword for difficulty:', this.difficulty);
       try {
         this.showLoadingState();
+        const shopDomain = this.containerElement
+          ? (this.containerElement.dataset.shopDomain || '')
+          : '';
+        const planStatus = await this.checkPlanStatus(shopDomain);
+        if (!planStatus.hasAccess) {
+          this.showNotActivatedState();
+          return;
+        }
+        if (planStatus.plan === 'free') {
+          this.applyFreePlanRestrictions();
+        }
         await this.loadPuzzleFromR2();
         this.userInputs = this.createEmptyGrid();
         this.isLoading = false;

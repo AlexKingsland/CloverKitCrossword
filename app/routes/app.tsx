@@ -11,22 +11,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
 
   const url = new URL(request.url);
-  const onPricing = url.pathname.startsWith("/app/pricing");
+  const pathname = url.pathname;
+
+  // Pages that must never redirect — they handle their own access state.
+  const isExempt =
+    pathname.startsWith("/app/pricing") ||
+    pathname === "/app" ||
+    pathname === "/app/" ||
+    pathname.startsWith("/app/analytics");
 
   let requiresPricing = false;
 
-  if (!onPricing) {
+  if (!isExempt) {
     const shopRecord = await prisma.shop.findUnique({
       where: { shop: session.shop },
     });
-
-    const noPlan = !shopRecord?.plan;
-    const freeTrialExpired =
-      shopRecord?.plan === "free" &&
-      shopRecord.freeTrialEndsAt != null &&
-      shopRecord.freeTrialEndsAt < new Date();
-
-    requiresPricing = noPlan || freeTrialExpired;
+    // Only redirect when there is genuinely no plan at all.
+    requiresPricing = !shopRecord?.plan;
   }
 
   // eslint-disable-next-line no-undef

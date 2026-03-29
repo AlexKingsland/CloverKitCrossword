@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 import { useState } from "react";
 import {
   LineChart,
@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { authenticate } from "../shopify.server";
-import { requirePlan } from "../utils/plan.server";
+import db from "../db.server";
 
 type Range = "day" | "week" | "month" | "year";
 
@@ -85,10 +85,18 @@ async function fetchRange(shop: string, range: Range): Promise<RangeData> {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  await requirePlan(session.shop, "starter");
+  const shopRecord = await db.shop.findUnique({ where: { shop: session.shop } });
+  const plan = shopRecord?.plan ?? null;
+  // Anyone without a paid plan sees the lock screen — no redirect ever.
+  // Only starter and pro get full analytics.
+  const locked = plan !== "starter" && plan !== "pro";
+
+  if (locked) {
+    return { configured: true, locked: true, data: null };
+  }
 
   if (!process.env.POSTHOG_API_KEY || !process.env.POSTHOG_PROJECT_ID) {
-    return { configured: false, data: null };
+    return { configured: false, locked: false, data: null };
   }
 
   const [day, week, month, year] = await Promise.all([
@@ -98,7 +106,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     fetchRange(session.shop, "year"),
   ]);
 
-  return { configured: true, data: { day, week, month, year } };
+  return { configured: true, locked: false, data: { day, week, month, year } };
 };
 
 function formatTime(seconds: number): string {
@@ -134,8 +142,56 @@ const RANGES: { value: Range; label: string }[] = [
 ];
 
 export default function AnalyticsPage() {
-  const { configured, data } = useLoaderData<typeof loader>();
+  const { configured, locked, data } = useLoaderData<typeof loader>();
   const [activeRange, setActiveRange] = useState<Range>("month");
+  const navigate = useNavigate();
+
+  if (locked) {
+    return (
+      <s-page heading="Analytics">
+        <s-section>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "48px 24px",
+              gap: "16px",
+              textAlign: "center",
+            }}
+          >
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#6d7175" strokeWidth="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4" stroke="#6d7175" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div style={{ fontSize: "18px", fontWeight: 600, color: "#202223" }}>
+              Analytics requires Standard or Pro
+            </div>
+            <div style={{ fontSize: "14px", color: "#6d7175", maxWidth: "360px" }}>
+              Upgrade your plan to access puzzle analytics including plays, completions, and completion time.
+            </div>
+            <button
+              onClick={() => navigate("/app/pricing")}
+              style={{
+                marginTop: "8px",
+                padding: "10px 20px",
+                background: "#008060",
+                color: "#fff",
+                borderRadius: "6px",
+                fontSize: "14px",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              View plans
+            </button>
+          </div>
+        </s-section>
+      </s-page>
+    );
+  }
 
   if (!configured) {
     return (
