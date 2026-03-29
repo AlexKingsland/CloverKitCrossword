@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigate, useSearchParams } from "react-router";
+import { useLoaderData } from "react-router";
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -19,26 +20,10 @@ const RANGE_CONFIG: Record<
   Range,
   { interval: string; groupBy: string; bucket: "hour" | "day" | "week" }
 > = {
-  day: {
-    interval: "1 day",
-    groupBy: "toStartOfHour(timestamp)",
-    bucket: "hour",
-  },
-  week: {
-    interval: "7 day",
-    groupBy: "toDate(timestamp)",
-    bucket: "day",
-  },
-  month: {
-    interval: "30 day",
-    groupBy: "toDate(timestamp)",
-    bucket: "day",
-  },
-  year: {
-    interval: "365 day",
-    groupBy: "toStartOfWeek(timestamp)",
-    bucket: "week",
-  },
+  day: { interval: "1 day", groupBy: "toStartOfHour(timestamp)", bucket: "hour" },
+  week: { interval: "7 day", groupBy: "toDate(timestamp)", bucket: "day" },
+  month: { interval: "30 day", groupBy: "toDate(timestamp)", bucket: "day" },
+  year: { interval: "365 day", groupBy: "toStartOfWeek(timestamp)", bucket: "week" },
 };
 
 async function hogql(query: string) {
@@ -60,41 +45,24 @@ async function hogql(query: string) {
   return res.json();
 }
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  await requirePlan(session.shop, "starter");
+type RangeData = {
+  series: Array<{ period: string; started: number; completed: number }>;
+  totals: { started: number; completed: number; completionRate: number; avgSeconds: number | null };
+};
 
-  if (!process.env.POSTHOG_API_KEY || !process.env.POSTHOG_PROJECT_ID) {
-    return { configured: false, range: "month" as Range, series: [], totals: null };
-  }
-
-  const url = new URL(request.url);
-  const rawRange = url.searchParams.get("range") ?? "month";
-  const range: Range = ["day", "week", "month", "year"].includes(rawRange)
-    ? (rawRange as Range)
-    : "month";
-
+async function fetchRange(shop: string, range: Range): Promise<RangeData> {
   const { interval, groupBy } = RANGE_CONFIG[range];
-  const shop = session.shop.replace(/'/g, "''");
+  const safeShop = shop.replace(/'/g, "''");
 
   const [startedRes, completedRes, avgRes] = await Promise.all([
-    hogql(
-      `SELECT ${groupBy} as period, count() as count FROM events WHERE event = 'crossword_puzzle_started' AND properties.shop = '${shop}' AND timestamp >= now() - interval ${interval} GROUP BY period ORDER BY period`,
-    ),
-    hogql(
-      `SELECT ${groupBy} as period, count() as count FROM events WHERE event = 'crossword_puzzle_completed' AND properties.shop = '${shop}' AND timestamp >= now() - interval ${interval} GROUP BY period ORDER BY period`,
-    ),
-    hogql(
-      `SELECT avg(toFloat(properties.elapsed_seconds)) FROM events WHERE event = 'crossword_puzzle_completed' AND properties.shop = '${shop}' AND timestamp >= now() - interval ${interval}`,
-    ),
+    hogql(`SELECT ${groupBy} as period, count() FROM events WHERE event = 'crossword_puzzle_started' AND properties.shop = '${safeShop}' AND timestamp >= now() - interval ${interval} GROUP BY period ORDER BY period`),
+    hogql(`SELECT ${groupBy} as period, count() FROM events WHERE event = 'crossword_puzzle_completed' AND properties.shop = '${safeShop}' AND timestamp >= now() - interval ${interval} GROUP BY period ORDER BY period`),
+    hogql(`SELECT avg(toFloat(properties.elapsed_seconds)) FROM events WHERE event = 'crossword_puzzle_completed' AND properties.shop = '${safeShop}' AND timestamp >= now() - interval ${interval}`),
   ]);
 
-  // Merge started + completed into a single series keyed by period
   const periodMap = new Map<string, { started: number; completed: number }>();
-
   for (const [period, count] of startedRes.results ?? []) {
-    const key = String(period);
-    periodMap.set(key, { started: Number(count), completed: 0 });
+    periodMap.set(String(period), { started: Number(count), completed: 0 });
   }
   for (const [period, count] of completedRes.results ?? []) {
     const key = String(period);
@@ -108,18 +76,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const totalStarted = series.reduce((s, r) => s + r.started, 0);
   const totalCompleted = series.reduce((s, r) => s + r.completed, 0);
-  const completionRate =
-    totalStarted > 0 ? Math.round((totalCompleted / totalStarted) * 100) : 0;
+  const completionRate = totalStarted > 0 ? Math.round((totalCompleted / totalStarted) * 100) : 0;
   const rawAvg = avgRes.results?.[0]?.[0];
-  const avgSeconds =
-    rawAvg != null && Number(rawAvg) > 0 ? Math.round(Number(rawAvg)) : null;
+  const avgSeconds = rawAvg != null && Number(rawAvg) > 0 ? Math.round(Number(rawAvg)) : null;
 
-  return {
-    configured: true,
-    range,
-    series,
-    totals: { started: totalStarted, completed: totalCompleted, completionRate, avgSeconds },
-  };
+  return { series, totals: { started: totalStarted, completed: totalCompleted, completionRate, avgSeconds } };
+}
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { session } = await authenticate.admin(request);
+  await requirePlan(session.shop, "starter");
+
+  if (!process.env.POSTHOG_API_KEY || !process.env.POSTHOG_PROJECT_ID) {
+    return { configured: false, data: null };
+  }
+
+  const [day, week, month, year] = await Promise.all([
+    fetchRange(session.shop, "day"),
+    fetchRange(session.shop, "week"),
+    fetchRange(session.shop, "month"),
+    fetchRange(session.shop, "year"),
+  ]);
+
+  return { configured: true, data: { day, week, month, year } };
 };
 
 function formatTime(seconds: number): string {
@@ -132,9 +111,7 @@ function formatTime(seconds: number): string {
 function formatXAxis(period: string, bucket: "hour" | "day" | "week") {
   const d = new Date(period);
   if (isNaN(d.getTime())) return period;
-  if (bucket === "hour") {
-    return d.toLocaleTimeString([], { hour: "numeric", hour12: true });
-  }
+  if (bucket === "hour") return d.toLocaleTimeString([], { hour: "numeric", hour12: true });
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
@@ -157,9 +134,8 @@ const RANGES: { value: Range; label: string }[] = [
 ];
 
 export default function AnalyticsPage() {
-  const { configured, range, series, totals } = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { configured, data } = useLoaderData<typeof loader>();
+  const [activeRange, setActiveRange] = useState<Range>("month");
 
   if (!configured) {
     return (
@@ -176,57 +152,45 @@ export default function AnalyticsPage() {
     );
   }
 
-  const bucket = RANGE_CONFIG[range].bucket;
+  const { series, totals } = data![activeRange];
+  const bucket = RANGE_CONFIG[activeRange].bucket;
 
   return (
     <s-page heading="Analytics">
-      {/* Summary stats */}
       <s-section>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "16px",
-            marginBottom: "8px",
-          }}
-        >
-          <StatCard label="Puzzles started" value={String(totals?.started ?? 0)} />
-          <StatCard label="Puzzles completed" value={String(totals?.completed ?? 0)} />
-          <StatCard label="Completion rate" value={`${totals?.completionRate ?? 0}%`} />
-          <StatCard
-            label="Avg completion time"
-            value={totals?.avgSeconds != null ? formatTime(totals.avgSeconds) : "—"}
-          />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "8px" }}>
+          <StatCard label="Puzzles started" value={String(totals.started)} />
+          <StatCard label="Puzzles completed" value={String(totals.completed)} />
+          <StatCard label="Completion rate" value={`${totals.completionRate}%`} />
+          <StatCard label="Avg completion time" value={totals.avgSeconds != null ? formatTime(totals.avgSeconds) : "—"} />
         </div>
       </s-section>
 
-      {/* Chart */}
       <s-section>
-        {/* Range toggle */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
           {RANGES.map((r) => (
             <button
               key={r.value}
-              onClick={() => {
-                const params = new URLSearchParams(searchParams);
-                params.set("range", r.value);
-                navigate(`?${params.toString()}`);
-              }}
+              onClick={() => setActiveRange(r.value)}
               style={{
                 padding: "6px 16px",
                 borderRadius: "6px",
                 border: "1px solid",
-                borderColor: range === r.value ? "#008060" : "#c9cccf",
-                background: range === r.value ? "#008060" : "transparent",
-                color: range === r.value ? "#fff" : "#202223",
+                borderColor: activeRange === r.value ? "#008060" : "#c9cccf",
+                background: activeRange === r.value ? "#008060" : "transparent",
+                color: activeRange === r.value ? "#fff" : "#202223",
                 cursor: "pointer",
-                fontWeight: range === r.value ? 600 : 400,
+                fontWeight: activeRange === r.value ? 600 : 400,
                 fontSize: "14px",
               }}
             >
               {r.label}
             </button>
           ))}
+        </div>
+
+        <div style={{ fontSize: "12px", color: "#6d7175", marginBottom: "20px" }}>
+          Metrics refresh approximately every hour.
         </div>
 
         {series.length === 0 ? (
@@ -253,33 +217,11 @@ export default function AnalyticsPage() {
               />
               <Tooltip
                 labelFormatter={(v) => formatXAxis(String(v), bucket)}
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: "1px solid #e1e3e5",
-                  fontSize: "13px",
-                }}
+                contentStyle={{ borderRadius: "8px", border: "1px solid #e1e3e5", fontSize: "13px" }}
               />
-              <Legend
-                wrapperStyle={{ fontSize: "13px", paddingTop: "12px" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="started"
-                name="Started"
-                stroke="#008060"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="completed"
-                name="Completed"
-                stroke="#5c6ac4"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
+              <Legend wrapperStyle={{ fontSize: "13px", paddingTop: "12px" }} />
+              <Line type="monotone" dataKey="started" name="Started" stroke="#008060" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+              <Line type="monotone" dataKey="completed" name="Completed" stroke="#5c6ac4" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         )}

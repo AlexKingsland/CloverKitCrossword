@@ -1,7 +1,8 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { redirect, Outlet, useLoaderData, useRouteError } from "react-router";
+import { Outlet, useLoaderData, useRouteError, useNavigate } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
+import { useEffect } from "react";
 
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -11,6 +12,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const url = new URL(request.url);
   const onPricing = url.pathname.startsWith("/app/pricing");
+
+  let requiresPricing = false;
 
   if (!onPricing) {
     const shopRecord = await prisma.shop.findUnique({
@@ -23,18 +26,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopRecord.freeTrialEndsAt != null &&
       shopRecord.freeTrialEndsAt < new Date();
 
-    if (noPlan || freeTrialExpired) {
-      const host = url.searchParams.get("host");
-      return redirect(`/app/pricing${host ? `?host=${host}` : ""}`);
-    }
+    requiresPricing = noPlan || freeTrialExpired;
   }
 
   // eslint-disable-next-line no-undef
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", requiresPricing };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, requiresPricing } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (requiresPricing) {
+      navigate("/app/pricing");
+    }
+  }, [requiresPricing, navigate]);
 
   return (
     <AppProvider embedded apiKey={apiKey}>
