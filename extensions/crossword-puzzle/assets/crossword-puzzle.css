@@ -329,11 +329,11 @@
 }
 
 .crossword-cell.highlighted {
-  background: var(--cw-accent-lighter, #e3f2fd) !important;
+  background: color-mix(in srgb, var(--cw-accent, #0066cc) 20%, white) !important;
 }
 
 .crossword-cell.current {
-  background: var(--cw-accent-light, #90caf9) !important;
+  background: color-mix(in srgb, var(--cw-accent, #0066cc) 45%, white) !important;
 }
 
 .crossword-cell-number {
@@ -458,7 +458,7 @@
 }
 
 .clue-item:hover {
-  background: var(--cw-accent-lighter, #e3f2fd);
+  background: color-mix(in srgb, var(--cw-accent, #0066cc) 15%, white);
 }
 
 .clue-item.correct {
@@ -472,7 +472,7 @@
 }
 
 .clue-item.highlight {
-  background: var(--cw-accent-light, #90caf9);
+  background: color-mix(in srgb, var(--cw-accent, #0066cc) 35%, white);
   color: #202223;
   font-weight: 600;
 }
