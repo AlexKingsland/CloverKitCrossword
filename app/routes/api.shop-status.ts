@@ -7,7 +7,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const headers = {
     "Access-Control-Allow-Origin": "*",
-    "Cache-Control": "public, max-age=60",
+    "Cache-Control": "no-store",
     "Content-Type": "application/json",
   };
 

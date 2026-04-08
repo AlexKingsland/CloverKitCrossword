@@ -23,6 +23,8 @@
   data-difficulty="{{ block.settings.difficulty }}"
   data-storefront-name="{{ shop.name | escape }}"
   data-shop-domain="{{ shop.permanent_domain | escape }}"
+  data-app-url="{{ app.metafields.cloverkit.app_url }}"
+  data-app-handle="{{ app.handle | default: 'cloverkit-crossword' }}"
   data-accent-color="{{ accent }}"
 >
   <div id="crossword-rotate-overlay" class="mobile-rotate-overlay" aria-live="polite">

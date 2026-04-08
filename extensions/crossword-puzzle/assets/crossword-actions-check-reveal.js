@@ -230,7 +230,7 @@
         this.showCompletionBanner();
         if (window.CloverKitAnalytics) {
           var shopDomain = this.containerElement ? this.containerElement.dataset.shopDomain || '' : '';
-          window.CloverKitAnalytics.trackPuzzleCompleted(shopDomain, this.difficulty, Math.round(this.elapsedTime / 1000));
+          window.CloverKitAnalytics.trackPuzzleCompleted(shopDomain, this.difficulty, Math.round(this.elapsedTime / 1000), this.plan);
         }
       } else {
         this.showIncorrectBanner(correctWords, totalWords);

@@ -4,7 +4,6 @@ import { unauthenticated } from "../shopify.server";
 import prisma from "../db.server";
 
 const PLAN_BY_SUBSCRIPTION_NAME: Record<string, string> = {
-  "CloverKit Crossword — Starter": "starter",
   "CloverKit Crossword — Pro": "pro",
 };
 
@@ -43,7 +42,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect("/app/pricing");
   }
 
-  const plan = PLAN_BY_SUBSCRIPTION_NAME[subscription.name] ?? "starter";
+  const plan = PLAN_BY_SUBSCRIPTION_NAME[subscription.name] ?? "pro";
 
   await prisma.shop.upsert({
     where: { shop },

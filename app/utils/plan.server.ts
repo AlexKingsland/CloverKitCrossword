@@ -3,13 +3,12 @@ import db from "../db.server";
 
 const PLAN_RANK: Record<string, number> = {
   free: 0,
-  starter: 1,
-  pro: 2,
+  pro: 1,
 };
 
 export async function requirePlan(
   shop: string,
-  minimumPlan: "free" | "starter" | "pro",
+  minimumPlan: "free" | "pro",
 ) {
   const shopRecord = await db.shop.findUnique({ where: { shop } });
 

@@ -54,6 +54,7 @@
       this.userInputs = null;
       this.revealedCells = new Set();
       this.isLoading = true;
+      this.plan = null;
 
       this.startTime = null;
       this.elapsedTime = 0;
@@ -87,6 +88,13 @@
       this.applyResolvedTitle();
       this.bindCollapseEvents();
       this.setCollapsedState(true);
+
+      // Keep the cover button disabled until the plan check resolves.
+      // This prevents merchants without a plan from expanding the crossword
+      // during the brief async window before showNotActivatedState() fires.
+      if (this.collapsedCoverButton) {
+        this.collapsedCoverButton.disabled = true;
+      }
 
       this.initialize();
     }
@@ -148,7 +156,7 @@
         if (!this._analyticsStartFired && window.CloverKitAnalytics) {
           this._analyticsStartFired = true;
           var shopDomain = this.containerElement.dataset.shopDomain || '';
-          window.CloverKitAnalytics.trackPuzzleStarted(shopDomain, this.difficulty);
+          window.CloverKitAnalytics.trackPuzzleStarted(shopDomain, this.difficulty, this.plan);
         }
       }
     }
@@ -181,31 +189,72 @@
 
     async checkPlanStatus(shopDomain) {
       try {
-        const appUrl = 'https://app.cloverkitstudio.com';
+        const appUrl = (this.containerElement && this.containerElement.dataset.appUrl)
+          || 'https://app.cloverkitstudio.com';
         const res = await fetch(`${appUrl}/api/shop-status?shop=${encodeURIComponent(shopDomain)}`);
-        if (!res.ok) return { plan: 'starter', hasAccess: true }; // fail open
+        if (!res.ok) return { plan: 'free', hasAccess: true }; // fail open
         return await res.json();
       } catch {
-        return { plan: 'starter', hasAccess: true }; // fail open on network error
+        return { plan: 'free', hasAccess: true }; // fail open on network error
       }
     }
 
     showNotActivatedState() {
       if (!this.containerElement) return;
-      // Clear the loading spinner that was placed in the grid
-      if (this.gridElement) this.gridElement.innerHTML = '';
-      if (this.collapsedCoverButton) {
-        this.collapsedCoverButton.innerHTML =
-          '<span style="display:flex;align-items:center;gap:8px;justify-content:center;opacity:0.65;font-size:14px;">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-          '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>' +
-          '<path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-          '</svg>' +
-          'Crossword not activated — store plan required' +
-          '</span>';
-        this.collapsedCoverButton.style.cursor = 'default';
-        this.collapsedCoverButton.disabled = true;
+
+      var isDesignMode = window.Shopify && window.Shopify.designMode;
+
+      if (!isDesignMode) {
+        // On the live storefront, hide the whole section so customers never see it.
+        // The merchant will see the activation overlay in the theme editor instead.
+        var section = this.containerElement.closest('.shopify-section') || this.containerElement;
+        section.style.display = 'none';
+        return;
       }
+
+      // Clear the grid only when showing the overlay in the theme editor
+      if (this.gridElement) this.gridElement.innerHTML = '';
+
+      // --- Theme editor: show merchant-facing activation overlay ---
+      var shopDomain = this.containerElement.dataset.shopDomain || '';
+      var storeHandle = shopDomain.replace('.myshopify.com', '');
+      var appHandle = this.containerElement.dataset.appHandle || 'cloverkit-crossword';
+      var pricingUrl = storeHandle
+        ? 'https://admin.shopify.com/store/' + storeHandle + '/apps/' + appHandle + '/app/pricing'
+        : 'https://app.cloverkitstudio.com';
+
+      // Ensure the container is tall enough to show the full overlay
+      var currentPosition = window.getComputedStyle(this.containerElement).position;
+      if (currentPosition === 'static') {
+        this.containerElement.style.position = 'relative';
+      }
+      this.containerElement.style.minHeight = '320px';
+
+      // Render a full blocking overlay over the entire crossword container
+      var overlay = document.createElement('div');
+      overlay.style.cssText =
+        'position:absolute;top:0;right:0;bottom:0;left:0;z-index:999;' +
+        'background:rgba(255,255,255,0.97);' +
+        'display:flex;align-items:center;justify-content:center;' +
+        'border-radius:inherit;';
+      overlay.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:40px 48px;max-width:700px;width:90%;text-align:center;">' +
+        '<div style="width:56px;height:56px;border-radius:50%;background:#f0faf7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+        '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#008060" stroke-width="2"/>' +
+        '<path d="M7 11V7a5 5 0 0110 0v4" stroke="#008060" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div style="font-size:20px;font-weight:700;color:#202223;">One quick step to activate</div>' +
+        '<div style="font-size:16px;color:#6d7175;line-height:1.6;">CloverKit Crossword is free to use. Activate your free plan to add the crossword to your storefront — no credit card required.</div>' +
+        '<a href="' + pricingUrl + '" target="_top" ' +
+        'style="display:inline-block;padding:12px 28px;background:#008060;color:#fff;border-radius:8px;' +
+        'font-size:16px;font-weight:600;text-decoration:none;cursor:pointer;">' +
+        'Activate for free →' +
+        '</a>' +
+        '</div>';
+
+      this.containerElement.appendChild(overlay);
     }
 
     applyFreePlanRestrictions() {
@@ -229,7 +278,7 @@
           '</svg>' +
           '<div style="font-size:13px;color:#6d7175;line-height:1.4;">' +
           '<strong style="color:#202223;">Difficulty &amp; Theme Color</strong><br>' +
-          'Upgrade to Standard or Pro to customize difficulty and accent color.' +
+          'Upgrade to Pro to customize difficulty and accent color.' +
           '</div>';
         modalBody.appendChild(lockBanner);
       }
@@ -247,9 +296,11 @@
           this.showNotActivatedState();
           return;
         }
-        if (planStatus.plan === 'free') {
-          this.applyFreePlanRestrictions();
+        // Plan verified — re-enable the cover button so the crossword can be opened
+        if (this.collapsedCoverButton) {
+          this.collapsedCoverButton.disabled = false;
         }
+        this.plan = planStatus.plan || 'free';
         await this.loadPuzzleFromR2();
         this.userInputs = this.createEmptyGrid();
         this.isLoading = false;

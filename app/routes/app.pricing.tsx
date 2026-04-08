@@ -9,34 +9,33 @@ const PLANS = [
     id: "free",
     name: "Free",
     price: 0,
-    description: "Get started with one crossword puzzle",
-    features: ["1 active puzzle", "Basic themes", "Community support"],
-  },
-  {
-    id: "starter",
-    name: "Starter",
-    price: 9.99,
-    description: "Perfect for growing stores",
+    description: "Get started at no cost",
     features: [
-      "10 active puzzles",
-      "All themes",
-      "Analytics",
-      "Email support",
+      "Daily crossword on your storefront",
+      "All difficulty levels",
+      "Custom accent colour",
+      "Mobile-ready experience",
+      "Community support",
     ],
+    excluded: ["Engagement analytics"],
   },
   {
     id: "pro",
     name: "Pro",
-    price: 29.99,
-    description: "For stores that want it all",
+    price: 2.99,
+    description: "For stores that want full visibility",
     features: [
-      "Unlimited puzzles",
-      "Custom branding",
+      "Everything in Free",
+      "Puzzle starts & completions tracking",
+      "Completion rate & solve time metrics",
+      "Historical trends & charts",
       "Priority support",
-      "Advanced analytics",
     ],
+    excluded: [],
   },
 ];
+
+const PLAN_RANK: Record<string, number> = { free: 0, pro: 1 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -45,9 +44,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
   const plan = shopRecord?.plan ?? null;
   return {
-    currentPlan: plan ?? "free",
-    hasActivePlan: plan !== null,
-    isPaidPlan: plan === "starter" || plan === "pro",
+    currentPlan: plan,
+    isPaidPlan: plan === "pro",
     plans: PLANS,
   };
 };
@@ -85,9 +83,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const plan = PLANS.find((p) => p.id === planId);
   if (!plan) return redirect("/app/pricing");
 
-  // ── Downgrade to Free ─────────────────────────────────────────────────────
+  // ── Select / downgrade to Free ────────────────────────────────────────────
   if (plan.price === 0) {
-    // Cancel any existing paid subscription first
     const shopRecord = await prisma.shop.findUnique({
       where: { shop: session.shop },
     });
@@ -103,17 +100,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         { variables: { id: shopRecord.subscriptionId } },
       );
     }
-    const freeTrialEndsAt = new Date();
-    freeTrialEndsAt.setDate(freeTrialEndsAt.getDate() + 30);
     await prisma.shop.upsert({
       where: { shop: session.shop },
-      create: { shop: session.shop, plan: "free", freeTrialEndsAt },
-      update: { plan: "free", freeTrialEndsAt, subscriptionId: null, subscriptionStatus: null },
+      create: { shop: session.shop, plan: "free" },
+      update: { plan: "free", freeTrialEndsAt: null, subscriptionId: null, subscriptionStatus: null },
     });
     return redirect("/app");
   }
 
-  // ── Upgrade / switch paid plan ────────────────────────────────────────────
+  // ── Upgrade to Pro ────────────────────────────────────────────────────────
   const response = await admin.graphql(
     `#graphql
     mutation appSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean) {
@@ -168,12 +163,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const PLAN_RANK: Record<string, number> = { free: 0, starter: 1, pro: 2 };
-
 function getLostPerks(fromPlanId: string, toPlanId: string | null): string[] {
   const from = PLANS.find((p) => p.id === fromPlanId);
   if (!from) return [];
-  if (toPlanId === null) return from.features; // canceling entirely
+  if (toPlanId === null) return from.features;
   const to = PLANS.find((p) => p.id === toPlanId);
   if (!to) return from.features;
   return from.features.filter((f) => !to.features.includes(f));
@@ -226,7 +219,6 @@ function ConfirmModal({
           boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
         }}
       >
-        {/* Icon + title */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
           <div
             style={{
@@ -251,14 +243,12 @@ function ConfirmModal({
           </div>
         </div>
 
-        {/* Description */}
         <p style={{ fontSize: "14px", color: "#6d7175", margin: "0 0 18px 0", lineHeight: 1.5 }}>
           {isCanceling
             ? "Your subscription will be cancelled immediately. Your storefront crossword will be deactivated and customers won't be able to play."
-            : `You'll move to the ${targetName} plan. You'll immediately lose access to the following features:`}
+            : `You'll move to the ${targetName} plan and immediately lose access to:`}
         </p>
 
-        {/* Lost perks list */}
         {state.lostPerks.length > 0 && (
           <ul
             style={{
@@ -289,28 +279,9 @@ function ConfirmModal({
                 {perk}
               </li>
             ))}
-            {isCanceling && (
-              <li
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  fontSize: "14px",
-                  color: "#202223",
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-                  <circle cx="12" cy="12" r="10" stroke="#d92020" strokeWidth="2"/>
-                  <line x1="15" y1="9" x2="9" y2="15" stroke="#d92020" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="9" y1="9" x2="15" y2="15" stroke="#d92020" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                Storefront crossword deactivated
-              </li>
-            )}
           </ul>
         )}
 
-        {/* Buttons */}
         <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
@@ -358,7 +329,7 @@ function ConfirmModal({
 // ── Page component ─────────────────────────────────────────────────────────
 
 export default function PricingPage() {
-  const { currentPlan, hasActivePlan, isPaidPlan, plans } = useLoaderData<typeof loader>();
+  const { currentPlan, isPaidPlan, plans } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const navigate = useNavigate();
   const [modal, setModal] = useState<ModalState>({ open: false });
@@ -369,7 +340,6 @@ export default function PricingPage() {
     }
   }, [fetcher.data]);
 
-  // Close modal once a non-redirect action resolves
   useEffect(() => {
     if (fetcher.state === "idle" && modal.open) {
       setModal({ open: false });
@@ -379,6 +349,11 @@ export default function PricingPage() {
   const isSubmitting = fetcher.state !== "idle";
 
   const handlePlanClick = (planId: string) => {
+    if (currentPlan === null) {
+      // First-time selection — no confirmation needed
+      fetcher.submit({ plan: planId }, { method: "POST" });
+      return;
+    }
     const isDowngrade = PLAN_RANK[planId] < PLAN_RANK[currentPlan];
     if (isDowngrade) {
       setModal({
@@ -397,7 +372,7 @@ export default function PricingPage() {
       open: true,
       intent: "cancel",
       targetPlanId: null,
-      lostPerks: getLostPerks(currentPlan, null),
+      lostPerks: getLostPerks(currentPlan ?? "", null),
     });
   };
 
@@ -410,6 +385,8 @@ export default function PricingPage() {
     }
   };
 
+  const noPlan = currentPlan === null;
+
   return (
     <>
       <ConfirmModal
@@ -420,7 +397,7 @@ export default function PricingPage() {
       />
 
       <s-page heading="Choose a plan">
-        {hasActivePlan && (
+        {!noPlan && (
           <div style={{ padding: "0 0 16px 0" }}>
             <s-button variant="tertiary" onClick={() => navigate("/app")}>
               ← Back
@@ -428,65 +405,127 @@ export default function PricingPage() {
           </div>
         )}
 
+        {noPlan && (
+          <p style={{ fontSize: "14px", color: "#6d7175", margin: "0 0 24px 0" }}>
+            Select a plan to activate your storefront crossword. You can change or cancel at any time.
+          </p>
+        )}
+
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "16px",
-            padding: "16px 0",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "20px",
+            maxWidth: "720px",
+            padding: "4px 0 24px",
           }}
         >
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              style={{
-                border: currentPlan === plan.id ? "2px solid #008060" : "1px solid #e1e3e5",
-                borderRadius: "12px",
-                padding: "24px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-                background: currentPlan === plan.id ? "#f0faf7" : "#fff",
-              }}
-            >
-              <div style={{ fontSize: "18px", fontWeight: 600 }}>{plan.name}</div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: "#202223" }}>
-                {plan.price === 0 ? "Free" : `$${plan.price}`}
-                {plan.price > 0 && (
-                  <span style={{ fontSize: "14px", fontWeight: 400, color: "#6d7175" }}>
-                    {" "}/ month
-                  </span>
+          {plans.map((plan) => {
+            const isCurrent = currentPlan === plan.id;
+            const isUpgrade = currentPlan !== null && PLAN_RANK[plan.id] > PLAN_RANK[currentPlan];
+            const isDowngrade = currentPlan !== null && PLAN_RANK[plan.id] < PLAN_RANK[currentPlan];
+
+            let buttonLabel: string;
+            if (isCurrent) {
+              buttonLabel = "Current plan";
+            } else if (noPlan) {
+              buttonLabel = `Select ${plan.name}`;
+            } else if (isUpgrade) {
+              buttonLabel = `Upgrade to ${plan.name}`;
+            } else if (isDowngrade) {
+              buttonLabel = `Downgrade to ${plan.name}`;
+            } else {
+              buttonLabel = `Select ${plan.name}`;
+            }
+
+            return (
+              <div
+                key={plan.id}
+                style={{
+                  border: isCurrent ? "2px solid #008060" : "1px solid #e1e3e5",
+                  borderRadius: "12px",
+                  padding: "28px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "14px",
+                  background: isCurrent ? "#f0faf7" : "#fff",
+                  position: "relative",
+                }}
+              >
+                {plan.id === "pro" && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-1px",
+                      right: "20px",
+                      background: "#008060",
+                      color: "#fff",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      padding: "3px 10px",
+                      borderRadius: "0 0 6px 6px",
+                    }}
+                  >
+                    Recommended
+                  </div>
+                )}
+
+                <div style={{ fontSize: "18px", fontWeight: 700, color: "#202223" }}>{plan.name}</div>
+
+                <div style={{ fontSize: "28px", fontWeight: 800, color: "#202223" }}>
+                  {plan.price === 0 ? "Free" : `$${plan.price}`}
+                  {plan.price > 0 && (
+                    <span style={{ fontSize: "14px", fontWeight: 400, color: "#6d7175" }}>
+                      {" "}/ month
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ color: "#6d7175", fontSize: "14px" }}>{plan.description}</div>
+
+                <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "8px", flexGrow: 1 }}>
+                  {plan.features.map((f) => (
+                    <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "14px", color: "#202223" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: "1px" }}>
+                        <polyline points="20 6 9 17 4 12" stroke="#008060" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                  {plan.excluded.map((f) => (
+                    <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "14px", color: "#8c9196" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: "1px" }}>
+                        <line x1="18" y1="6" x2="6" y2="18" stroke="#c9cccf" strokeWidth="2" strokeLinecap="round"/>
+                        <line x1="6" y1="6" x2="18" y2="18" stroke="#c9cccf" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {isCurrent ? (
+                  <s-button disabled>{buttonLabel}</s-button>
+                ) : (
+                  <s-button
+                    variant={plan.id === "pro" && !isDowngrade ? "primary" : "secondary"}
+                    onClick={() => handlePlanClick(plan.id)}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Processing…" : buttonLabel}
+                  </s-button>
                 )}
               </div>
-              <div style={{ color: "#6d7175", fontSize: "14px" }}>{plan.description}</div>
-              <ul style={{ margin: 0, paddingLeft: "20px", color: "#202223", fontSize: "14px", flexGrow: 1 }}>
-                {plan.features.map((f) => (
-                  <li key={f} style={{ marginBottom: "6px" }}>{f}</li>
-                ))}
-              </ul>
-              {currentPlan === plan.id ? (
-                <s-button disabled>Current plan</s-button>
-              ) : (
-                <s-button
-                  variant="primary"
-                  onClick={() => handlePlanClick(plan.id)}
-                >
-                  {plan.price === 0
-                    ? "Downgrade to Free"
-                    : PLAN_RANK[plan.id] < PLAN_RANK[currentPlan]
-                    ? `Downgrade to ${plan.name}`
-                    : `Upgrade to ${plan.name}`}
-                </s-button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Cancel subscription — only shown for paying customers */}
         {isPaidPlan && (
           <div
             style={{
-              marginTop: "32px",
+              marginTop: "8px",
               paddingTop: "28px",
               borderTop: "1px solid #e1e3e5",
               display: "flex",

@@ -89,7 +89,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const plan = shopRecord?.plan ?? null;
   // Anyone without a paid plan sees the lock screen — no redirect ever.
   // Only starter and pro get full analytics.
-  const locked = plan !== "starter" && plan !== "pro";
+  const locked = plan !== "pro";
 
   if (locked) {
     return { configured: true, locked: true, data: null };
@@ -166,7 +166,7 @@ export default function AnalyticsPage() {
               <path d="M7 11V7a5 5 0 0110 0v4" stroke="#6d7175" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <div style={{ fontSize: "18px", fontWeight: 600, color: "#202223" }}>
-              Analytics requires Standard or Pro
+              Analytics requires Pro
             </div>
             <div style={{ fontSize: "14px", color: "#6d7175", maxWidth: "360px" }}>
               Upgrade your plan to access puzzle analytics including plays, completions, and completion time.
