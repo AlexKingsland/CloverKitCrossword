@@ -215,7 +215,7 @@
   background: var(--cw-accent-dark, #0052a3);
 }
 
-.toolbar-submit-btn.btn-solved {
+.toolbar-submit-btn.cw-btn-solved {
   background: #9e9e9e !important;
   color: #ffffff !important;
   cursor: not-allowed !important;
@@ -233,7 +233,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease-in;
+  animation: cwFadeIn 0.3s ease-in;
 }
 
 .banner-content {
@@ -243,7 +243,7 @@
   text-align: center;
   max-width: 500px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.4s ease-out;
+  animation: cwSlideUp 0.4s ease-out;
 }
 
 .banner-content h3 {
@@ -273,7 +273,7 @@
   font-size: 1em;
 }
 
-@keyframes fadeIn {
+@keyframes cwFadeIn {
   from {
     opacity: 0;
   }
@@ -282,7 +282,7 @@
   }
 }
 
-@keyframes slideUp {
+@keyframes cwSlideUp {
   from {
     transform: translateY(30px);
     opacity: 0;
@@ -487,7 +487,7 @@
   background: rgba(0, 0, 0, 0.55);
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.2s ease;
+  animation: cwFadeIn 0.2s ease;
 }
 
 .crossword-modal-overlay.open {
@@ -502,7 +502,7 @@
   color: #202223;
   border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.25s ease-out;
+  animation: cwSlideUp 0.25s ease-out;
 }
 
 .modal-header {
@@ -773,7 +773,7 @@
   z-index: 1;
 }
 
-.btn {
+.cw-btn {
   padding: 10px 20px;
   margin: 0;
   border: none;
@@ -784,33 +784,33 @@
   transition: background-color 0.2s;
 }
 
-.btn-primary {
+.cw-btn-primary {
   background: var(--cw-accent, #0066cc);
   color: white;
 }
 
-.btn-primary:hover {
+.cw-btn-primary:hover {
   background: var(--cw-accent-dark, #0052a3);
 }
 
-.btn-solved {
+.cw-btn-solved {
   background: #9e9e9e !important;
   color: #ffffff !important;
   cursor: not-allowed !important;
   opacity: 0.7;
 }
 
-.btn-solved:hover {
+.cw-btn-solved:hover {
   background: #9e9e9e !important;
 }
 
-.btn-secondary {
+.cw-btn-secondary {
   background: #f6f6f7;
   color: #202223;
   border: 1px solid #c9cccf;
 }
 
-.btn-secondary:hover {
+.cw-btn-secondary:hover {
   background: #e8e9ea;
 }
 
@@ -876,7 +876,7 @@
     font-size: 12px;
   }
 
-  .btn {
+  .cw-btn {
     padding: 10px 14px;
     font-size: 13px;
   }
@@ -917,7 +917,7 @@
     margin-bottom: 20px;
   }
 
-  .btn {
+  .cw-btn {
     padding: 8px 10px;
     font-size: 12px;
   }

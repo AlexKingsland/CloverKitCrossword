@@ -241,7 +241,7 @@
       if (!this.submitButton) return;
       this.submitButton.disabled = true;
       this.submitButton.textContent = 'Solved!';
-      this.submitButton.classList.add('btn-solved');
+      this.submitButton.classList.add('cw-btn-solved');
     };
 
     proto.resetPuzzle = function resetPuzzle() {

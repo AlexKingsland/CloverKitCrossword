@@ -182,8 +182,8 @@ export default function PrivacyPolicy() {
           <strong>CloverKit Studio</strong>
           <br />
           Email:{" "}
-          <a href="mailto:support@cloverkitstudio.com">
-            support@cloverkitstudio.com
+          <a href="mailto:cloverkitstudio@gmail.com">
+            cloverkitstudio@gmail.com
           </a>
           <br />
           Website:{" "}
