@@ -1,236 +1,231 @@
-# Shopify App Template - React Router
+# CloverKit Crossword — Shopify App
 
-This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using [React Router](https://reactrouter.com/). It was forked from the [Shopify Remix app template](https://github.com/Shopify/shopify-app-template-remix) and converted to React Router.
+A Shopify embedded app that adds an interactive crossword puzzle to merchant storefronts, with engagement analytics for Pro subscribers.
 
-Rather than cloning this repo, follow the [Quick Start steps](https://github.com/Shopify/shopify-app-template-react-router#quick-start).
+**Stack:** React Router 7 (fullstack) · Prisma ORM · PostgreSQL · Shopify App Bridge · PostHog
 
-Visit the [`shopify.dev` documentation](https://shopify.dev/docs/api/shopify-app-react-router) for more details on the React Router app package.
+---
 
-## Upgrading from Remix
+## Prerequisites
 
-If you have an existing Remix app that you want to upgrade to React Router, please follow the [upgrade guide](https://github.com/Shopify/shopify-app-template-react-router/wiki/Upgrading-from-Remix). Otherwise, please follow the quick start guide below.
+Make sure you have the following installed before starting:
 
-## Quick start
+- **Node.js** `>=20.19 <22` or `>=22.12` — check with `node -v`
+- **npm** — comes with Node
+- **Shopify CLI** — install with `npm install -g @shopify/cli@latest`
+- **PostgreSQL** — version 14+ recommended (see setup below)
+- A **Shopify Partner account** with access to the `cloverkit-crossword` app
 
-### Prerequisites
+---
 
-Before you begin, you'll need to [download and install the Shopify CLI](https://shopify.dev/docs/apps/tools/cli/getting-started) if you haven't already.
+## 1. Install PostgreSQL
 
-### Setup
+> **Note:** As of early 2026 the dev environment switched from SQLite to a local PostgreSQL instance. This is required — the app will not start without a valid Postgres `DATABASE_URL`.
 
-```shell
-shopify app init --template=https://github.com/Shopify/shopify-app-template-react-router
+### macOS (Homebrew)
+
+```bash
+brew install postgresql@16
+brew services start postgresql@16
 ```
 
-### Local Development
+### macOS (Postgres.app)
 
-```shell
-shopify app dev
+Download and install from [postgresapp.com](https://postgresapp.com). Start the server from the menu bar icon.
+
+### Windows
+
+Download the installer from [postgresql.org/download/windows](https://www.postgresql.org/download/windows) and run it. Make sure to start the PostgreSQL service.
+
+### Verify it's running
+
+```bash
+psql --version
+psql -U postgres -c '\l'   # should list databases without error
 ```
 
-Press P to open the URL to your app. Once you click install, you can start development.
+---
 
-Local development is powered by [the Shopify CLI](https://shopify.dev/docs/apps/tools/cli). It logs into your account, connects to an app, provides environment variables, updates remote config, creates a tunnel and provides commands to generate extensions.
+## 2. Create the local database
 
-### Authenticating and querying data
+Connect to Postgres and create the database:
 
-To authenticate and query data you can use the `shopify` const that is exported from `/app/shopify.server.js`:
-
-```js
-export async function loader({ request }) {
-  const { admin } = await shopify.authenticate.admin(request);
-
-  const response = await admin.graphql(`
-    {
-      products(first: 25) {
-        nodes {
-          title
-          description
-        }
-      }
-    }`);
-
-  const {
-    data: {
-      products: { nodes },
-    },
-  } = await response.json();
-
-  return nodes;
-}
+```bash
+psql postgres
 ```
 
-This template comes pre-configured with examples of:
+Then inside the Postgres shell:
 
-1. Setting up your Shopify app in [/app/shopify.server.ts](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/shopify.server.ts)
-2. Querying data using Graphql. Please see: [/app/routes/app.\_index.tsx](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/routes/app._index.tsx).
-3. Responding to webhooks. Please see [/app/routes/webhooks.tsx](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/routes/webhooks.app.uninstalled.tsx).
-
-Please read the [documentation for @shopify/shopify-app-react-router](https://shopify.dev/docs/api/shopify-app-react-router) to see what other API's are available.
-
-## Shopify Dev MCP
-
-This template is configured with the Shopify Dev MCP. This instructs [Cursor](https://cursor.com/), [GitHub Copilot](https://github.com/features/copilot) and [Claude Code](https://claude.com/product/claude-code) and [Google Gemini CLI](https://github.com/google-gemini/gemini-cli) to use the Shopify Dev MCP.
-
-For more information on the Shopify Dev MCP please read [the documentation](https://shopify.dev/docs/apps/build/devmcp).
-
-## Deployment
-
-### Application Storage
-
-This template uses [Prisma](https://www.prisma.io/) to store session data, by default using an [SQLite](https://www.sqlite.org/index.html) database.
-The database is defined as a Prisma schema in `prisma/schema.prisma`.
-
-This use of SQLite works in production if your app runs as a single instance.
-The database that works best for you depends on the data your app needs and how it is queried.
-Here’s a short list of databases providers that provide a free tier to get started:
-
-| Database   | Type             | Hosters                                                                                                                                                                                                                                    |
-| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| MySQL      | SQL              | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-mysql), [Planet Scale](https://planetscale.com/), [Amazon Aurora](https://aws.amazon.com/rds/aurora/), [Google Cloud SQL](https://cloud.google.com/sql/docs/mysql) |
-| PostgreSQL | SQL              | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-postgresql), [Amazon Aurora](https://aws.amazon.com/rds/aurora/), [Google Cloud SQL](https://cloud.google.com/sql/docs/postgres)                                   |
-| Redis      | Key-value        | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-redis), [Amazon MemoryDB](https://aws.amazon.com/memorydb/)                                                                                                        |
-| MongoDB    | NoSQL / Document | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-mongodb), [MongoDB Atlas](https://www.mongodb.com/atlas/database)                                                                                                  |
-
-To use one of these, you can use a different [datasource provider](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#datasource) in your `schema.prisma` file, or a different [SessionStorage adapter package](https://github.com/Shopify/shopify-api-js/blob/main/packages/shopify-api/docs/guides/session-storage.md).
-
-### Build
-
-Build the app by running the command below with the package manager of your choice:
-
-Using yarn:
-
-```shell
-yarn build
+```sql
+CREATE DATABASE cloverkit_crossword_dev;
+-- If your local Postgres user isn't your OS username, also run:
+CREATE USER your_username WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE cloverkit_crossword_dev TO your_username;
+\q
 ```
 
-Using npm:
+> On macOS with Homebrew or Postgres.app, your local Postgres user is usually your macOS username and requires no password.
 
-```shell
-npm run build
+---
+
+## 3. Clone and install dependencies
+
+```bash
+git clone <repo-url>
+cd CloverKitCrossword
+npm install
 ```
 
-Using pnpm:
+---
 
-```shell
-pnpm run build
+## 4. Set up environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
 ```
 
-## Hosting
+Open `.env` and set:
 
-When you're ready to set up your app in production, you can follow [our deployment documentation](https://shopify.dev/docs/apps/launch/deployment) to host it externally. From there, you have a few options:
+```env
+# PostgreSQL connection string — update username/password to match your local setup
+DATABASE_URL="postgresql://your_username@localhost:5432/cloverkit_crossword_dev"
 
-- [Google Cloud Run](https://shopify.dev/docs/apps/launch/deployment/deploy-to-google-cloud-run): This tutorial is written specifically for this example repo, and is compatible with the extended steps included in the subsequent [**Build your app**](tutorial) in the **Getting started** docs. It is the most detailed tutorial for taking a React Router-based Shopify app and deploying it to production. It includes configuring permissions and secrets, setting up a production database, and even hosting your apps behind a load balancer across multiple regions.
-- [Fly.io](https://fly.io/docs/js/shopify/): Leverages the Fly.io CLI to quickly launch Shopify apps to a single machine.
-- [Render](https://render.com/docs/deploy-shopify-app): This tutorial guides you through using Docker to deploy and install apps on a Dev store.
-- [Manual deployment guide](https://shopify.dev/docs/apps/launch/deployment/deploy-to-hosting-service): This resource provides general guidance on the requirements of deployment including environment variables, secrets, and persistent data.
-
-When you reach the step for [setting up environment variables](https://shopify.dev/docs/apps/deployment/web#set-env-vars), you also need to set the variable `NODE_ENV=production`.
-
-## Gotchas / Troubleshooting
-
-### Database tables don't exist
-
-If you get an error like:
-
-```
-The table `main.Session` does not exist in the current database.
+# PostHog analytics — get these from the PostHog project dashboard
+# (ask a team member for access if you don't have it)
+POSTHOG_API_KEY="phx_..."
+POSTHOG_PROJECT_ID="360294"
 ```
 
-Create the database for Prisma. Run the `setup` script in `package.json` using `npm`, `yarn` or `pnpm`.
+> `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET` are injected automatically by the Shopify CLI when you run `shopify app dev` — you do not need to set these manually.
 
-### Navigating/redirecting breaks an embedded app
+---
 
-Embedded apps must maintain the user session, which can be tricky inside an iFrame. To avoid issues:
+## 5. Run Prisma migrations
 
-1. Use `Link` from `react-router` or `@shopify/polaris`. Do not use `<a>`.
-2. Use `redirect` returned from `authenticate.admin`. Do not use `redirect` from `react-router`
-3. Use `useSubmit` from `react-router`.
+Generate the Prisma client and apply all migrations to your local database:
 
-This only applies if your app is embedded, which it will be by default.
-
-### Webhooks: shop-specific webhook subscriptions aren't updated
-
-If you are registering webhooks in the `afterAuth` hook, using `shopify.registerWebhooks`, you may find that your subscriptions aren't being updated.
-
-Instead of using the `afterAuth` hook declare app-specific webhooks in the `shopify.app.toml` file. This approach is easier since Shopify will automatically sync changes every time you run `deploy` (e.g: `npm run deploy`). Please read these guides to understand more:
-
-1. [app-specific vs shop-specific webhooks](https://shopify.dev/docs/apps/build/webhooks/subscribe#app-specific-subscriptions)
-2. [Create a subscription tutorial](https://shopify.dev/docs/apps/build/webhooks/subscribe/get-started?deliveryMethod=https)
-
-If you do need shop-specific webhooks, keep in mind that the package calls `afterAuth` in 2 scenarios:
-
-- After installing the app
-- When an access token expires
-
-During normal development, the app won't need to re-authenticate most of the time, so shop-specific subscriptions aren't updated. To force your app to update the subscriptions, uninstall and reinstall the app. Revisiting the app will call the `afterAuth` hook.
-
-### Webhooks: Admin created webhook failing HMAC validation
-
-Webhooks subscriptions created in the [Shopify admin](https://help.shopify.com/en/manual/orders/notifications/webhooks) will fail HMAC validation. This is because the webhook payload is not signed with your app's secret key.
-
-The recommended solution is to use [app-specific webhooks](https://shopify.dev/docs/apps/build/webhooks/subscribe#app-specific-subscriptions) defined in your toml file instead. Test your webhooks by triggering events manually in the Shopify admin(e.g. Updating the product title to trigger a `PRODUCTS_UPDATE`).
-
-### Webhooks: Admin object undefined on webhook events triggered by the CLI
-
-When you trigger a webhook event using the Shopify CLI, the `admin` object will be `undefined`. This is because the CLI triggers an event with a valid, but non-existent, shop. The `admin` object is only available when the webhook is triggered by a shop that has installed the app. This is expected.
-
-Webhooks triggered by the CLI are intended for initial experimentation testing of your webhook configuration. For more information on how to test your webhooks, see the [Shopify CLI documentation](https://shopify.dev/docs/apps/tools/cli/commands#webhook-trigger).
-
-### Incorrect GraphQL Hints
-
-By default the [graphql.vscode-graphql](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql) extension for will assume that GraphQL queries or mutations are for the [Shopify Admin API](https://shopify.dev/docs/api/admin). This is a sensible default, but it may not be true if:
-
-1. You use another Shopify API such as the storefront API.
-2. You use a third party GraphQL API.
-
-If so, please update [.graphqlrc.ts](https://github.com/Shopify/shopify-app-template-react-router/blob/main/.graphqlrc.ts).
-
-### Using Defer & await for streaming responses
-
-By default the CLI uses a cloudflare tunnel. Unfortunately cloudflare tunnels wait for the Response stream to finish, then sends one chunk. This will not affect production.
-
-To test [streaming using await](https://reactrouter.com/api/components/Await#await) during local development we recommend [localhost based development](https://shopify.dev/docs/apps/build/cli-for-apps/networking-options#localhost-based-development).
-
-### "nbf" claim timestamp check failed
-
-This is because a JWT token is expired. If you are consistently getting this error, it could be that the clock on your machine is not in sync with the server. To fix this ensure you have enabled "Set time and date automatically" in the "Date and Time" settings on your computer.
-
-### Using MongoDB and Prisma
-
-If you choose to use MongoDB with Prisma, there are some gotchas in Prisma's MongoDB support to be aware of. Please see the [Prisma SessionStorage README](https://www.npmjs.com/package/@shopify/shopify-app-session-storage-prisma#mongodb).
-
-### Unable to require(`C:\...\query_engine-windows.dll.node`).
-
-Unable to require(`C:\...\query_engine-windows.dll.node`).
-The Prisma engines do not seem to be compatible with your system.
-
-query_engine-windows.dll.node is not a valid Win32 application.
-
-**Fix:** Set the environment variable:
-
-```shell
-PRISMA_CLIENT_ENGINE_TYPE=binary
+```bash
+npm run setup
 ```
 
-This forces Prisma to use the binary engine mode, which runs the query engine as a separate process and can work via emulation on Windows ARM64.
+This runs `prisma generate && prisma migrate deploy` under the hood. You should see output confirming that migrations were applied and the Prisma client was generated.
 
-## Resources
+If you ever add new fields to `prisma/schema.prisma`, create a new migration with:
 
-React Router:
+```bash
+npx prisma migrate dev --name describe-your-change
+```
 
-- [React Router docs](https://reactrouter.com/home)
+To inspect your local database visually:
 
-Shopify:
+```bash
+npx prisma studio
+```
 
-- [Intro to Shopify apps](https://shopify.dev/docs/apps/getting-started)
-- [Shopify App React Router docs](https://shopify.dev/docs/api/shopify-app-react-router)
-- [Shopify CLI](https://shopify.dev/docs/apps/tools/cli)
-- [Shopify App Bridge](https://shopify.dev/docs/api/app-bridge-library).
-- [Polaris Web Components](https://shopify.dev/docs/api/app-home/polaris-web-components).
-- [App extensions](https://shopify.dev/docs/apps/app-extensions/list)
-- [Shopify Functions](https://shopify.dev/docs/api/functions)
+---
 
-Internationalization:
+## 6. Start the dev server
 
-- [Internationalizing your app](https://shopify.dev/docs/apps/best-practices/internationalization/getting-started)
+```bash
+npm run dev
+```
+
+This runs `shopify app dev`, which will:
+
+1. Authenticate you with Shopify (opens a browser if not already logged in)
+2. Link to the `cloverkit-crossword` app in the Partner account
+3. Start a Cloudflare tunnel to expose your local server
+4. Print a URL — press `P` to open it and install the app on your dev store
+
+> **First time?** You'll need to be added to the Shopify Partner organisation to link to the app. Ask Alex to invite you.
+
+---
+
+## Project structure
+
+```
+app/
+  routes/
+    app._index.tsx          # Setup wizard / home page
+    app.pricing.tsx         # Plan selection
+    app.analytics.tsx       # Analytics dashboard (Pro only)
+    app.billing.callback.tsx
+    api.shop-status.ts      # Public storefront API (no auth)
+    auth.$.tsx              # OAuth callback
+    privacy.tsx             # Public privacy policy page
+    webhooks.app.uninstalled.tsx
+    webhooks.app.scopes_update.tsx
+    webhooks.app.subscriptions_update.tsx
+    webhooks.customers.data_request.tsx   # GDPR compliance
+    webhooks.customers.redact.tsx         # GDPR compliance
+    webhooks.shop.redact.tsx              # GDPR compliance
+  shopify.server.ts         # Shopify SDK config
+  db.server.ts              # Prisma client
+extensions/
+  crossword-puzzle/         # Theme app extension (storefront block)
+prisma/
+  schema.prisma             # Database schema
+shopify.app.toml            # Shopify app manifest
+```
+
+---
+
+## Useful commands
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server with Shopify CLI tunnel |
+| `npm run setup` | Generate Prisma client + run migrations |
+| `npm run deploy` | Deploy app config to Shopify Partner Dashboard |
+| `npm run build` | Build for production |
+| `npx prisma studio` | Open visual DB browser |
+| `npx prisma migrate dev` | Create and apply a new migration |
+| `npx prisma migrate reset` | Wipe and re-seed the local database |
+
+---
+
+## GDPR compliance webhooks
+
+The three mandatory GDPR compliance webhook handlers exist in `app/routes/`:
+
+- `webhooks.customers.data_request.tsx`
+- `webhooks.customers.redact.tsx`
+- `webhooks.shop.redact.tsx`
+
+These **cannot** be registered via `shopify.app.toml`. They must be set manually in the Shopify Dev Dashboard under **Settings** for the app, pointing to:
+
+- `https://app.cloverkitstudio.com/webhooks/customers/data_request`
+- `https://app.cloverkitstudio.com/webhooks/customers/redact`
+- `https://app.cloverkitstudio.com/webhooks/shop/redact`
+
+This only needs to be done once per deployment environment and is already configured in production.
+
+---
+
+## Common issues
+
+**`DATABASE_URL` error on startup**
+
+Make sure PostgreSQL is running (`brew services list` on macOS) and the database exists. Run `psql -U your_username -d cloverkit_crossword_dev` to verify you can connect.
+
+**`The table 'Session' does not exist`**
+
+You haven't run migrations yet. Run `npm run setup`.
+
+**`Error: Cannot find module '.prisma/client'`**
+
+Run `npm run setup` to regenerate the Prisma client.
+
+**Shopify CLI asks to link to a different app**
+
+Run `npm run config:link` and select `cloverkit-crossword` from the list.
+
+**App doesn't load after install (redirect loop)**
+
+This usually means the `DATABASE_URL` is wrong or the database is unreachable. Check your `.env` and that Postgres is running.
+
+**`nbf claim timestamp check failed`**
+
+Your system clock is out of sync. Enable "Set time and date automatically" in your OS date/time settings.

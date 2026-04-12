@@ -1,0 +1,28 @@
+import type { ActionFunctionArgs } from "react-router";
+import { authenticate } from "../shopify.server";
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { shop, topic, payload } = await authenticate.webhook(request);
+
+  console.log(`Received ${topic} webhook for ${shop}`);
+
+  // CloverKit Crossword does not store personally identifiable customer data
+  // in its database. Session records contain only merchant (store owner) data.
+  // Customer interaction events (puzzle starts/completions) are stored in
+  // PostHog and are tagged with the shop domain only — no customer identifiers
+  // (name, email, customer ID) are ever sent to or stored by this app.
+  //
+  // As such, there is no customer-specific data to return for this request.
+  // We acknowledge the request and return 200 OK as required by Shopify.
+
+  const dataRequest = payload as {
+    customer: { id: number; email: string };
+    data_request: { id: number };
+  };
+
+  console.log(
+    `Data request ID ${dataRequest?.data_request?.id} for customer ${dataRequest?.customer?.id} at ${shop}: no customer data held by this app.`
+  );
+
+  return new Response();
+};
