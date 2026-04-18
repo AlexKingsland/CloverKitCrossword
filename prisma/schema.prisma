@@ -36,7 +36,8 @@ model Shop {
   plan               String?
   subscriptionId     String?
   subscriptionStatus String?
-  freeTrialEndsAt    DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  freeTrialEndsAt        DateTime?
+  customerMarketingEmail String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 }

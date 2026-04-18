@@ -12,6 +12,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
   return {
     hasActivePlan: !!shopRecord?.plan,
+    plan: shopRecord?.plan ?? null,
     shop: session.shop,
   };
 };
@@ -168,7 +169,7 @@ function NoPlanModal({ onClose, onGoToPricing }: { onClose: () => void; onGoToPr
 }
 
 export default function Index() {
-  const { hasActivePlan, shop } = useLoaderData<typeof loader>();
+  const { hasActivePlan, plan, shop } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [showNoPlanModal, setShowNoPlanModal] = useState(false);
 
@@ -241,22 +242,53 @@ export default function Index() {
             >
               {hasActivePlan ? "Manage plan" : "Get started"}
             </button>
-            <button
-              onClick={() => navigate("/app/analytics")}
-              style={{
-                padding: "11px 24px",
-                background: "rgba(255,255,255,0.15)",
-                color: "#fff",
-                borderRadius: "8px",
-                border: "1px solid rgba(255,255,255,0.35)",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              View analytics
-            </button>
           </div>
+        </div>
+
+        {/* ── Plan status ──────────────────────────────────────────────── */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "#fff",
+            border: "1px solid #e1e3e5",
+            borderRadius: "10px",
+            padding: "14px 20px",
+            marginBottom: "24px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div
+              style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background: hasActivePlan ? "#008060" : "#c9cccf",
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontSize: "14px", color: "#202223" }}>
+              {hasActivePlan
+                ? <>Current plan: <strong>{plan === "pro" ? "Analytics" : "Free Forever"}</strong></>
+                : "No plan selected"}
+            </span>
+          </div>
+          <button
+            onClick={() => navigate("/app/pricing")}
+            style={{
+              padding: "6px 14px",
+              background: "#f0faf7",
+              color: "#008060",
+              border: "1px solid #b5e3d8",
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            {hasActivePlan ? (plan === "free" ? "Upgrade plan" : "Manage plan") : "Choose a plan"} →
+          </button>
         </div>
 
         {/* ── Feature grid ─────────────────────────────────────────────── */}
@@ -370,12 +402,26 @@ export default function Index() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {[
-              {
-                n: 1,
-                title: "Choose a plan",
-                desc: "Select Free to get started at no cost, or Pro to unlock engagement analytics.",
-                action: { label: hasActivePlan ? "Manage plan" : "Go to pricing", onClick: () => navigate("/app/pricing") },
-              },
+              plan === null
+                ? {
+                    n: 1,
+                    title: "Choose a plan",
+                    desc: "Select Free Forever to get started at no cost, or upgrade to Analytics to unlock engagement tracking.",
+                    action: { label: "Go to pricing", onClick: () => navigate("/app/pricing") },
+                  }
+                : plan === "free"
+                ? {
+                    n: 1,
+                    title: "You're on Free Forever",
+                    desc: "Upgrade to Analytics anytime to unlock puzzle plays, completions, and engagement trends.",
+                    action: { label: "Upgrade to Analytics", onClick: () => navigate("/app/pricing") },
+                  }
+                : {
+                    n: 1,
+                    title: "You're on Analytics",
+                    desc: "You have full access to engagement tracking, completion rates, and historical trends.",
+                    action: { label: "Manage plan", onClick: () => navigate("/app/pricing") },
+                  },
               {
                 n: 2,
                 title: "Add the block to your theme",

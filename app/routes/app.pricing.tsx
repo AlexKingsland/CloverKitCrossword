@@ -8,6 +8,7 @@ const PLANS = [
   {
     id: "free",
     name: "Free",
+    displayName: "FREE FOREVER",
     price: 0,
     description: "Get started at no cost",
     features: [
@@ -21,8 +22,9 @@ const PLANS = [
   },
   {
     id: "pro",
-    name: "Pro",
-    price: 2.99,
+    name: "Analytics",
+    displayName: "ANALYTICS",
+    price: 1.99,
     description: "For stores that want full visibility",
     features: [
       "Everything in Free",
@@ -45,7 +47,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const plan = shopRecord?.plan ?? null;
   return {
     currentPlan: plan,
-    isPaidPlan: plan === "pro",
     plans: PLANS,
   };
 };
@@ -56,28 +57,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const intent = formData.get("intent") as string | null;
   const planId = formData.get("plan") as string;
 
-  // ── Cancel subscription entirely ──────────────────────────────────────────
-  if (intent === "cancel") {
-    const shopRecord = await prisma.shop.findUnique({
-      where: { shop: session.shop },
-    });
-    if (shopRecord?.subscriptionId) {
-      await admin.graphql(
-        `#graphql
-        mutation appSubscriptionCancel($id: ID!) {
-          appSubscriptionCancel(id: $id) {
-            appSubscription { id status }
-            userErrors { field message }
-          }
-        }`,
-        { variables: { id: shopRecord.subscriptionId } },
-      );
-    }
+  // ── Save marketing email ──────────────────────────────────────────────────
+  if (intent === "save_marketing") {
+    const email = (formData.get("email") as string | null)?.trim() || null;
     await prisma.shop.update({
       where: { shop: session.shop },
-      data: { plan: null, subscriptionId: null, subscriptionStatus: null, freeTrialEndsAt: null },
+      data: { customerMarketingEmail: email },
     });
-    return redirect("/app/pricing");
+    return redirect("/app");
+  }
+
+  // ── Skip marketing (just go home, plan already set) ───────────────────────
+  if (intent === "skip_marketing") {
+    return redirect("/app");
   }
 
   const plan = PLANS.find((p) => p.id === planId);
@@ -88,6 +80,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const shopRecord = await prisma.shop.findUnique({
       where: { shop: session.shop },
     });
+    const isFirstTime = !shopRecord?.plan;
+
     if (shopRecord?.subscriptionId) {
       await admin.graphql(
         `#graphql
@@ -105,6 +99,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       create: { shop: session.shop, plan: "free" },
       update: { plan: "free", freeTrialEndsAt: null, subscriptionId: null, subscriptionStatus: null },
     });
+
+    if (isFirstTime) {
+      const shopRes = await admin.graphql(`#graphql query { shop { email } }`);
+      const shopData = await shopRes.json();
+      const shopEmail: string = shopData.data?.shop?.email ?? "";
+      return { showMarketingModal: true, shopEmail };
+    }
+
     return redirect("/app");
   }
 
@@ -163,12 +165,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function getLostPerks(fromPlanId: string, toPlanId: string | null): string[] {
+function getLostPerks(fromPlanId: string, toPlanId: string): string[] {
   const from = PLANS.find((p) => p.id === fromPlanId);
-  if (!from) return [];
-  if (toPlanId === null) return from.features;
   const to = PLANS.find((p) => p.id === toPlanId);
-  if (!to) return from.features;
+  if (!from || !to) return [];
   return from.features.filter((f) => !to.features.includes(f));
 }
 
@@ -176,7 +176,7 @@ function getLostPerks(fromPlanId: string, toPlanId: string | null): string[] {
 
 type ModalState =
   | { open: false }
-  | { open: true; intent: "downgrade" | "cancel"; targetPlanId: string | null; lostPerks: string[] };
+  | { open: true; targetPlanId: string; lostPerks: string[] };
 
 function ConfirmModal({
   state,
@@ -191,10 +191,7 @@ function ConfirmModal({
 }) {
   if (!state.open) return null;
 
-  const isCanceling = state.intent === "cancel";
-  const targetName = state.targetPlanId
-    ? PLANS.find((p) => p.id === state.targetPlanId)?.name
-    : null;
+  const targetName = PLANS.find((p) => p.id === state.targetPlanId)?.name;
 
   return (
     <div
@@ -239,14 +236,12 @@ function ConfirmModal({
             </svg>
           </div>
           <div style={{ fontSize: "17px", fontWeight: 700, color: "#202223" }}>
-            {isCanceling ? "Cancel your subscription?" : `Downgrade to ${targetName}?`}
+            Downgrade to {targetName}?
           </div>
         </div>
 
         <p style={{ fontSize: "14px", color: "#6d7175", margin: "0 0 18px 0", lineHeight: 1.5 }}>
-          {isCanceling
-            ? "Your subscription will be cancelled immediately. Your storefront crossword will be deactivated and customers won't be able to play."
-            : `You'll move to the ${targetName} plan and immediately lose access to:`}
+          You'll move to the {targetName} plan and immediately lose access to:
         </p>
 
         {state.lostPerks.length > 0 && (
@@ -314,11 +309,132 @@ function ConfirmModal({
               opacity: isSubmitting ? 0.7 : 1,
             }}
           >
-            {isSubmitting
-              ? "Processing…"
-              : isCanceling
-              ? "Yes, cancel subscription"
-              : `Yes, downgrade to ${targetName}`}
+            {isSubmitting ? "Processing…" : `Yes, downgrade to ${targetName}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Marketing opt-in modal ─────────────────────────────────────────────────
+
+function MarketingModal({
+  shopEmail,
+  onOptIn,
+  onSkip,
+  isSubmitting,
+}: {
+  shopEmail: string;
+  onOptIn: (email: string) => void;
+  onSkip: () => void;
+  isSubmitting: boolean;
+}) {
+  const [email, setEmail] = useState(shopEmail);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: "12px",
+          padding: "28px 32px",
+          maxWidth: "440px",
+          width: "100%",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "#f0faf7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#008060" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="22,6 12,13 2,6" stroke="#008060" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div style={{ fontSize: "17px", fontWeight: 700, color: "#202223" }}>
+            Stay in the loop
+          </div>
+        </div>
+
+        <p style={{ fontSize: "14px", color: "#6d7175", margin: "0 0 18px 0", lineHeight: 1.5 }}>
+          Would you like to receive product updates and tips from CloverKit? We'll send them to the email below — you can change it if you'd prefer a different address.
+        </p>
+
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#202223", marginBottom: "6px" }}>
+            Email address
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              border: "1px solid #c9cccf",
+              fontSize: "14px",
+              color: "#202223",
+              boxSizing: "border-box",
+              outline: "none",
+            }}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onSkip}
+            disabled={isSubmitting}
+            style={{
+              padding: "8px 18px",
+              borderRadius: "6px",
+              border: "1px solid #c9cccf",
+              background: "#fff",
+              fontSize: "14px",
+              fontWeight: 500,
+              cursor: "pointer",
+              color: "#6d7175",
+            }}
+          >
+            No thanks
+          </button>
+          <button
+            onClick={() => onOptIn(email)}
+            disabled={isSubmitting || !email.trim()}
+            style={{
+              padding: "8px 18px",
+              borderRadius: "6px",
+              border: "none",
+              background: "#008060",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: isSubmitting ? "wait" : "pointer",
+              opacity: isSubmitting || !email.trim() ? 0.7 : 1,
+            }}
+          >
+            {isSubmitting ? "Saving…" : "Yes, keep me updated"}
           </button>
         </div>
       </div>
@@ -329,14 +445,18 @@ function ConfirmModal({
 // ── Page component ─────────────────────────────────────────────────────────
 
 export default function PricingPage() {
-  const { currentPlan, isPaidPlan, plans } = useLoaderData<typeof loader>();
+  const { currentPlan, plans } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const navigate = useNavigate();
   const [modal, setModal] = useState<ModalState>({ open: false });
+  const [marketingModal, setMarketingModal] = useState<{ open: false } | { open: true; shopEmail: string }>({ open: false });
 
   useEffect(() => {
     if (fetcher.data && "confirmationUrl" in fetcher.data) {
       open(fetcher.data.confirmationUrl as string, "_top");
+    }
+    if (fetcher.data && "showMarketingModal" in fetcher.data) {
+      setMarketingModal({ open: true, shopEmail: (fetcher.data as { shopEmail: string }).shopEmail });
     }
   }, [fetcher.data]);
 
@@ -358,7 +478,6 @@ export default function PricingPage() {
     if (isDowngrade) {
       setModal({
         open: true,
-        intent: "downgrade",
         targetPlanId: planId,
         lostPerks: getLostPerks(currentPlan, planId),
       });
@@ -367,20 +486,9 @@ export default function PricingPage() {
     }
   };
 
-  const handleCancelClick = () => {
-    setModal({
-      open: true,
-      intent: "cancel",
-      targetPlanId: null,
-      lostPerks: getLostPerks(currentPlan ?? "", null),
-    });
-  };
-
   const confirmModal = () => {
     if (!modal.open) return;
-    if (modal.intent === "cancel") {
-      fetcher.submit({ intent: "cancel" }, { method: "POST" });
-    } else if (modal.targetPlanId) {
+    if (modal.targetPlanId) {
       fetcher.submit({ plan: modal.targetPlanId }, { method: "POST" });
     }
   };
@@ -395,6 +503,19 @@ export default function PricingPage() {
         onClose={() => setModal({ open: false })}
         isSubmitting={isSubmitting}
       />
+
+      {marketingModal.open && (
+        <MarketingModal
+          shopEmail={marketingModal.shopEmail}
+          onOptIn={(email) => {
+            fetcher.submit({ intent: "save_marketing", email }, { method: "POST" });
+          }}
+          onSkip={() => {
+            fetcher.submit({ intent: "skip_marketing" }, { method: "POST" });
+          }}
+          isSubmitting={isSubmitting}
+        />
+      )}
 
       <s-page heading="Choose a plan">
         {!noPlan && (
@@ -458,7 +579,7 @@ export default function PricingPage() {
                       position: "absolute",
                       top: "-1px",
                       right: "20px",
-                      background: "#008060",
+                      background: "#4a8e8e",
                       color: "#fff",
                       fontSize: "11px",
                       fontWeight: 700,
@@ -468,22 +589,18 @@ export default function PricingPage() {
                       borderRadius: "0 0 6px 6px",
                     }}
                   >
-                    Recommended
+                    Professional
                   </div>
                 )}
 
-                <div style={{ fontSize: "18px", fontWeight: 700, color: "#202223" }}>{plan.name}</div>
+                <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", color: "#8c9196", textTransform: "uppercase" }}>{plan.displayName}</div>
 
                 <div style={{ fontSize: "28px", fontWeight: 800, color: "#202223" }}>
-                  {plan.price === 0 ? "Free" : `$${plan.price}`}
-                  {plan.price > 0 && (
-                    <span style={{ fontSize: "14px", fontWeight: 400, color: "#6d7175" }}>
-                      {" "}/ month
-                    </span>
-                  )}
+                  {plan.price === 0 ? "$0" : `$${plan.price}`}
+                  <span style={{ fontSize: "14px", fontWeight: 400, color: "#6d7175" }}>
+                    /mo
+                  </span>
                 </div>
-
-                <div style={{ color: "#6d7175", fontSize: "14px" }}>{plan.description}</div>
 
                 <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "8px", flexGrow: 1 }}>
                   {plan.features.map((f) => (
@@ -521,55 +638,6 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Cancel subscription — only shown for paying customers */}
-        {isPaidPlan && (
-          <div
-            style={{
-              marginTop: "8px",
-              paddingTop: "28px",
-              borderTop: "1px solid #e1e3e5",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
-            <p style={{ margin: 0, fontSize: "13px", color: "#8c9196" }}>
-              Want to stop your subscription entirely?
-            </p>
-            <button
-              onClick={handleCancelClick}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "7px",
-                padding: "9px 20px",
-                borderRadius: "8px",
-                border: "1.5px solid #fca5a5",
-                background: "#fff5f5",
-                color: "#b91c1c",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "background 0.15s, border-color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = "#fee2e2";
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "#f87171";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = "#fff5f5";
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "#fca5a5";
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-                <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Cancel subscription
-            </button>
-          </div>
-        )}
       </s-page>
     </>
   );
