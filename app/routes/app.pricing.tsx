@@ -101,7 +101,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     if (isFirstTime) {
-      const shopRes = await admin.graphql(`#graphql query { shop { email } }`);
+      const shopRes = await admin.graphql(`#graphql
+        query { shop { email } }
+      `);
       const shopData = await shopRes.json();
       const shopEmail: string = shopData.data?.shop?.email ?? "";
       return { showMarketingModal: true, shopEmail };
