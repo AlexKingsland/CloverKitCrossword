@@ -33,14 +33,15 @@ export default function PrivacyPolicy() {
 
         <h3 style={styles.h3}>Subscription and billing data</h3>
         <p>
-          If you subscribe to the Pro plan, we store the following in connection
-          with your shop:
+          If you subscribe to the Analytics plan ($1.99/month), we store the
+          following in connection with your shop:
         </p>
         <ul>
-          <li>Your chosen plan (Free or Pro)</li>
+          <li>Your chosen plan (Free Forever or Analytics)</li>
           <li>Shopify subscription ID</li>
           <li>Subscription status (e.g. ACTIVE, CANCELLED)</li>
           <li>Free trial end date (where applicable)</li>
+          <li>Marketing contact email (if you opted in to product updates)</li>
         </ul>
         <p>
           All billing and payment processing is handled entirely by Shopify via
@@ -75,8 +76,13 @@ export default function PrivacyPolicy() {
           <li>Authenticate your Shopify store and maintain your session</li>
           <li>Manage your subscription and enforce plan-based feature access</li>
           <li>
-            Display engagement analytics on your Pro dashboard (puzzle
-            starts, completions, and completion times)
+            Display engagement analytics on your Analytics dashboard (puzzle
+            starts, completions, and completion times) — available on the
+            Analytics plan ($1.99/month)
+          </li>
+          <li>
+            Send product updates and tips to merchants who have opted in to
+            marketing communications
           </li>
           <li>Improve the App and diagnose technical issues</li>
         </ul>
