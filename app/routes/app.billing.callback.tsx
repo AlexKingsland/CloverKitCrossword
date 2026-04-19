@@ -59,5 +59,5 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
   });
 
-  return redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app/pricing`);
+  return redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app`);
 };

@@ -22,11 +22,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       data: { subscriptionStatus: status },
     });
 
-    // If cancelled or payment failed, clear plan so merchant must re-select
-    if (["CANCELLED", "DECLINED", "EXPIRED", "FROZEN"].includes(status)) {
+    // Subscription ended — fall back to free plan.
+    // FROZEN is a temporary Shopify-initiated hold; keep the plan, just update status.
+    if (["CANCELLED", "DECLINED", "EXPIRED"].includes(status)) {
       await db.shop.updateMany({
         where: { shop },
-        data: { plan: null, subscriptionId: null, subscriptionStatus: status },
+        data: { plan: "free", subscriptionId: null, subscriptionStatus: status },
       });
     }
   }
