@@ -126,8 +126,8 @@
     };
 
     proto.highlightClue = function highlightClue(clueNum) {
-      document.querySelectorAll('.clue-item').forEach((item) => item.classList.remove('highlight'));
-      const clueElement = document.querySelector(`[data-clue="${clueNum}"]`);
+      this.containerElement.querySelectorAll('.clue-item').forEach((item) => item.classList.remove('highlight'));
+      const clueElement = this.containerElement.querySelector(`[data-clue="${clueNum}"]`);
       if (clueElement) clueElement.classList.add('highlight');
     };
 

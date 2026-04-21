@@ -3,52 +3,51 @@
   const DEBUG = false;
 
   class CrosswordPuzzle {
-    constructor() {
+    constructor(rootElement) {
       this._listeners = [];
       this._resizeHandler = null;
       this._scrollTimer = null;
 
-      this.containerElement = document.querySelector('.crossword-container');
-      this.titleElement = document.querySelector('.crossword-title');
+      this.containerElement = rootElement;
+      this.titleElement = rootElement.querySelector('.crossword-title');
       this.storefrontDailyTitle = 'Daily Crossword';
-      this.rotateOverlayElement = document.getElementById('crossword-rotate-overlay');
-      this.collapsibleContentElement = document.getElementById('crossword-collapsible-content');
-      this.collapsedCoverButton = document.getElementById('crossword-collapsed-cover');
-      this.closeButton = document.getElementById('crossword-close-button');
-      this.gridElement = document.getElementById('crossword-grid');
-      this.acrossCluesElement = document.getElementById('across-clues');
-      this.downCluesElement = document.getElementById('down-clues');
-      this.messageElement = document.getElementById('crossword-message');
+      this.rotateOverlayElement = rootElement.querySelector('#crossword-rotate-overlay');
+      this.collapsibleContentElement = rootElement.querySelector('#crossword-collapsible-content');
+      this.collapsedCoverButton = rootElement.querySelector('#crossword-collapsed-cover');
+      this.closeButton = rootElement.querySelector('#crossword-close-button');
+      this.gridElement = rootElement.querySelector('#crossword-grid');
+      this.acrossCluesElement = rootElement.querySelector('#across-clues');
+      this.downCluesElement = rootElement.querySelector('#down-clues');
+      this.messageElement = rootElement.querySelector('#crossword-message');
 
       // Toolbar elements
-      this.timerDisplay = document.getElementById('timer-display');
-      this.timerPauseBtn = document.getElementById('timer-pause-btn');
-      this.submitButton = document.getElementById('submit-puzzle');
-      this.toolbarHelpBtn = document.getElementById('toolbar-help-btn');
-      this.toolbarSettingsBtn = document.getElementById('toolbar-settings-btn');
+      this.timerDisplay = rootElement.querySelector('#timer-display');
+      this.timerPauseBtn = rootElement.querySelector('#timer-pause-btn');
+      this.submitButton = rootElement.querySelector('#submit-puzzle');
+      this.toolbarHelpBtn = rootElement.querySelector('#toolbar-help-btn');
+      this.toolbarSettingsBtn = rootElement.querySelector('#toolbar-settings-btn');
 
       // Help modal elements
-      this.helpModalOverlay = document.getElementById('help-modal-overlay');
-      this.helpModalClose = document.getElementById('help-modal-close');
-      this.howToPlayBtn = document.getElementById('how-to-play-btn');
-      this.helpInstructions = document.getElementById('help-instructions');
-      this.checkLetterBtn = document.getElementById('check-letter');
-      this.checkWordBtn = document.getElementById('check-word');
-      this.checkPuzzleBtn = document.getElementById('check-puzzle');
-      this.revealLetterBtn = document.getElementById('reveal-letter');
-      this.revealWordBtn = document.getElementById('reveal-word');
-      this.revealPuzzleBtn = document.getElementById('reveal-puzzle');
-      this.resetButton = document.getElementById('reset-puzzle');
+      this.helpModalOverlay = rootElement.querySelector('#help-modal-overlay');
+      this.helpModalClose = rootElement.querySelector('#help-modal-close');
+      this.howToPlayBtn = rootElement.querySelector('#how-to-play-btn');
+      this.helpInstructions = rootElement.querySelector('#help-instructions');
+      this.checkLetterBtn = rootElement.querySelector('#check-letter');
+      this.checkWordBtn = rootElement.querySelector('#check-word');
+      this.checkPuzzleBtn = rootElement.querySelector('#check-puzzle');
+      this.revealLetterBtn = rootElement.querySelector('#reveal-letter');
+      this.revealWordBtn = rootElement.querySelector('#reveal-word');
+      this.revealPuzzleBtn = rootElement.querySelector('#reveal-puzzle');
+      this.resetButton = rootElement.querySelector('#reset-puzzle');
 
       // Settings modal elements
-      this.settingsModalOverlay = document.getElementById('settings-modal-overlay');
-      this.settingsModalClose = document.getElementById('settings-modal-close');
-      this.darkModeToggle = document.getElementById('setting-dark-mode');
-      this.skipFilledToggle = document.getElementById('setting-skip-filled');
-      this.nextPuzzleCountdown = document.getElementById('next-puzzle-countdown');
+      this.settingsModalOverlay = rootElement.querySelector('#settings-modal-overlay');
+      this.settingsModalClose = rootElement.querySelector('#settings-modal-close');
+      this.darkModeToggle = rootElement.querySelector('#setting-dark-mode');
+      this.skipFilledToggle = rootElement.querySelector('#setting-skip-filled');
+      this.nextPuzzleCountdown = rootElement.querySelector('#next-puzzle-countdown');
 
-      const container = document.querySelector('.crossword-container');
-      this.difficulty = container ? container.dataset.difficulty : 'medium';
+      this.difficulty = rootElement.dataset.difficulty || 'medium';
 
       this.currentPuzzle = null;
       this.userInputs = null;
@@ -69,10 +68,10 @@
       this.currentClueNumber = null;
 
       this.isMobileDevice = this.detectMobileDevice();
-      this.mobileKeyboard = document.getElementById('mobile-keyboard');
-      this.keyboardClueText = document.getElementById('keyboard-clue-text');
-      this.keyboardPrevBtn = document.getElementById('keyboard-prev-clue');
-      this.keyboardNextBtn = document.getElementById('keyboard-next-clue');
+      this.mobileKeyboard = rootElement.querySelector('#mobile-keyboard');
+      this.keyboardClueText = rootElement.querySelector('#keyboard-clue-text');
+      this.keyboardPrevBtn = rootElement.querySelector('#keyboard-prev-clue');
+      this.keyboardNextBtn = rootElement.querySelector('#keyboard-next-clue');
 
       this.mobileLandscapeMediaQuery = window.matchMedia('(orientation: landscape)');
       this.mobilePointerQuery = window.matchMedia('(pointer: coarse)');
@@ -361,7 +360,7 @@
       this.bindMenuEvents();
       this.bindActionEvents();
       this.addTrackedListener(document, 'click', (e) => {
-        if (e.target.classList.contains('clue-item')) {
+        if (e.target.classList.contains('clue-item') && this.containerElement.contains(e.target)) {
           const clueNum = e.target.dataset.clue;
           this.handleClueClick(clueNum);
           if (this.isMobileDevice) this.updateKeyboardClue();

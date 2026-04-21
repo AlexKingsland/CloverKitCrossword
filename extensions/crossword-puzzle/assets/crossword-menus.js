@@ -1,14 +1,13 @@
 // Modal & settings behavior (help modal, settings modal, toolbar interactions)
 (function () {
-  const SETTINGS_KEY = 'crossword_settings';
-
   function applyMenusModule(proto) {
 
     // --- Settings persistence ---
 
     proto.loadSettings = function loadSettings() {
       try {
-        const stored = localStorage.getItem(SETTINGS_KEY);
+        const key = 'crossword_settings_' + this.difficulty;
+        const stored = localStorage.getItem(key);
         if (stored) {
           const parsed = JSON.parse(stored);
           this.darkMode = !!parsed.darkMode;
@@ -21,7 +20,8 @@
 
     proto.saveSettings = function saveSettings() {
       try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        const key = 'crossword_settings_' + this.difficulty;
+        localStorage.setItem(key, JSON.stringify({
           darkMode: this.darkMode,
           skipFilledLetters: this.skipFilledLetters,
         }));

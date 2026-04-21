@@ -127,10 +127,7 @@
       }, { passive: true });
 
       this.addTrackedListener(document, 'click', (e) => {
-        const isGridClick = e.target.closest('#crossword-grid');
-        const isClueClick = e.target.closest('.crossword-clues');
-        const isKeyboardClick = e.target.closest('#mobile-keyboard');
-        if (!isGridClick && !isClueClick && !isKeyboardClick) this.hideMobileKeyboard();
+        if (!this.containerElement.contains(e.target)) this.hideMobileKeyboard();
       });
     };
 

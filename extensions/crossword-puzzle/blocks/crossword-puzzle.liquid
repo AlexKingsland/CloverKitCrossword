@@ -1,8 +1,9 @@
 {{ 'crossword-puzzle.css' | asset_url | stylesheet_tag }}
 
 {%- assign accent = block.settings.accent_color -%}
+{%- assign cw_block_id = block.id -%}
 <style>
-  .crossword-container {
+  .crossword-container[data-block-id="{{ cw_block_id }}"] {
     --cw-accent: {{ accent }};
     --cw-accent-light: {{ accent | color_lighten: 30 }};
     --cw-accent-lighter: {{ accent | color_lighten: 42 }};
@@ -13,13 +14,14 @@
   }
 
   /* Full-width accent background on the Shopify section wrapper */
-  .shopify-section:has(.crossword-container) {
+  .shopify-section:has(.crossword-container[data-block-id="{{ cw_block_id }}"]) {
     background: {{ accent | color_modify: 'alpha', 0.06 }};
   }
 </style>
 
 <div
   class="crossword-container is-collapsed"
+  data-block-id="{{ cw_block_id }}"
   data-difficulty="{{ block.settings.difficulty }}"
   data-storefront-name="{{ shop.name | escape }}"
   data-shop-domain="{{ shop.permanent_domain | escape }}"

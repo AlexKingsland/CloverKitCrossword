@@ -1,10 +1,7 @@
-// Bootstrap entrypoint (thin)
+// Bootstrap entrypoint (thin) — one instance per container
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.__crosswordPuzzleInstance && typeof window.__crosswordPuzzleInstance.destroy === 'function') {
-    window.__crosswordPuzzleInstance.destroy();
-  }
-
-  if (window.CrosswordPuzzleApp) {
-    window.__crosswordPuzzleInstance = new window.CrosswordPuzzleApp();
-  }
+  if (!window.CrosswordPuzzleApp) return;
+  document.querySelectorAll('.crossword-container').forEach((container) => {
+    new window.CrosswordPuzzleApp(container);
+  });
 });
