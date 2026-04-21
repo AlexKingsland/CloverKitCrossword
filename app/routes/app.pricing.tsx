@@ -458,7 +458,8 @@ export default function PricingPage() {
       open(fetcher.data.confirmationUrl as string, "_top");
     }
     if (fetcher.data && "showMarketingModal" in fetcher.data) {
-      setMarketingModal({ open: true, shopEmail: (fetcher.data as { shopEmail: string }).shopEmail });
+      const shopEmail = (fetcher.data as { shopEmail: string }).shopEmail;
+      setTimeout(() => setMarketingModal({ open: true, shopEmail }), 3000);
     }
   }, [fetcher.data]);
 
