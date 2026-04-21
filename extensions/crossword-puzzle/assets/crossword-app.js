@@ -151,7 +151,11 @@
       if (isCollapsed) {
         this.pauseTimer();
       } else {
-        this.resumeTimer();
+        if (this.currentPuzzle && !this.timerInterval && !this.isPaused) {
+          this.startTimer();
+        } else {
+          this.resumeTimer();
+        }
         if (!this._analyticsStartFired && window.CloverKitAnalytics) {
           this._analyticsStartFired = true;
           var shopDomain = this.containerElement.dataset.shopDomain || '';
@@ -353,7 +357,8 @@
       };
       this.addTrackedListener(window, 'resize', this._resizeHandler);
       this.syncCluesHeight();
-      this.startTimer();
+      // Timer starts on first expand, not at load time, so two collapsed
+      // crosswords on the same page don't share an identical elapsed time.
     }
 
     bindEvents() {
