@@ -865,10 +865,17 @@
     padding: 10px;
   }
 
-  /* Toolbar on mobile */
+  /* Toolbar on mobile — drop absolute centering, anchor timer left */
   .crossword-toolbar {
     padding: 4px 8px;
     gap: 4px;
+    justify-content: space-between;
+  }
+
+  .toolbar-center {
+    position: static;
+    transform: none;
+    flex-shrink: 0;
   }
 
   .toolbar-submit-btn {
