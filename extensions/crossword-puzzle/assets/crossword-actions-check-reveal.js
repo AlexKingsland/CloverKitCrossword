@@ -98,6 +98,7 @@
       this.clearCheckIndicators();
       let allCorrect = true;
       let hasContent = false;
+      let anyCorrect = false;
       this.selectedWord.forEach(({ row, col }) => {
         const ans = this.currentPuzzle.answers?.[row]?.[col];
         if (!this.isAnswerLetter(ans)) return;
@@ -105,6 +106,7 @@
           hasContent = true;
           if (sameAnswer(this.userInputs[row][col], ans)) {
             this.applyCellCheckClass(row, col, 'correct-check');
+            anyCorrect = true;
           } else {
             this.applyCellCheckClass(row, col, 'incorrect');
             allCorrect = false;
@@ -115,6 +117,7 @@
       });
       if (!hasContent) this.showMessage('Word is empty', 'info');
       else if (allCorrect) this.showMessage('Word is correct!', 'success');
+      else if (!anyCorrect) this.showMessage('All letters are incorrect', 'error');
       else this.showMessage('Some letters are incorrect', 'error');
       setTimeout(() => this.clearCheckIndicators(), 3000);
     };
