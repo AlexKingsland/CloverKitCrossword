@@ -252,12 +252,25 @@
     };
 
     proto.showMessage = function showMessage(text, type) {
-      this.messageElement.textContent = text;
-      this.messageElement.className = `crossword-message message-${type}`;
-      setTimeout(() => {
-        this.messageElement.textContent = '';
-        this.messageElement.className = 'crossword-message';
-      }, 3000);
+      const existing = this.containerElement.querySelector('.cw-message-overlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cw-message-overlay';
+
+      const dialog = document.createElement('div');
+      dialog.className = 'cw-message-dialog cw-message-' + type;
+      dialog.innerHTML =
+        '<p class="cw-message-text"></p>' +
+        '<button class="cw-message-ok" type="button">OK</button>';
+      dialog.querySelector('.cw-message-text').textContent = text;
+
+      overlay.appendChild(dialog);
+      this.containerElement.appendChild(overlay);
+
+      const close = () => overlay.remove();
+      dialog.querySelector('.cw-message-ok').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
     };
   }
 

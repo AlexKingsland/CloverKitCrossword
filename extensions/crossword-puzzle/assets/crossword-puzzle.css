@@ -612,6 +612,69 @@
   color: #ffffff;
 }
 
+/* Message modal */
+.cw-message-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: cwFadeIn 0.2s ease;
+}
+
+.cw-message-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  padding: 28px 24px 20px;
+  width: min(88vw, 320px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: cwSlideUp 0.2s ease-out;
+}
+
+.cw-message-text {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #202223;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.cw-message-success .cw-message-text { color: #1a7340; }
+.cw-message-error   .cw-message-text { color: #c0392b; }
+
+.cw-message-ok {
+  padding: 9px 32px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: var(--cw-accent, #0066cc);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cw-message-ok:hover {
+  background: var(--cw-accent-dark, #0052a3);
+}
+
+/* Dark mode */
+.crossword-container.dark-mode .cw-message-dialog {
+  background: #1e1e1e;
+}
+.crossword-container.dark-mode .cw-message-text {
+  color: #f0f0f0;
+}
+.crossword-container.dark-mode .cw-message-success .cw-message-text { color: #4caf82; }
+.crossword-container.dark-mode .cw-message-error   .cw-message-text { color: #e57373; }
+
 /* Help Instructions Panel */
 .help-instructions {
   border-radius: 10px;
