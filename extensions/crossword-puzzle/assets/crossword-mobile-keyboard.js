@@ -196,6 +196,20 @@
       return window.CrosswordUtils.sortClueEntries(clues);
     };
 
+    proto.getCluesForDirection = function getCluesForDirection(direction) {
+      const clueSet = direction === 'across' ? this.currentPuzzle.acrossClues : this.currentPuzzle.downClues;
+      const clues = Object.keys(clueSet).map((num) => ({ num, direction }));
+      return window.CrosswordUtils.sortClueEntries(clues);
+    };
+
+    proto.isWordFullyFilled = function isWordFullyFilled(clueNum, direction) {
+      const position = this.currentPuzzle.cluePositions[clueNum];
+      if (!position) return false;
+      const word = this.findWordAt(position.row, position.col, direction);
+      if (!word) return false;
+      return word.every((cell) => !!this.userInputs[cell.row][cell.col]);
+    };
+
     proto.getCurrentClueNumber = function getCurrentClueNumber() {
       if (this.currentClueNumber) return this.currentClueNumber;
       if (!this.selectedWord) return null;
@@ -207,11 +221,24 @@
       if (!position) return;
       this.lastClickTime = 0;
       this.currentDirection = direction;
-      this.handleCellClick(position.row, position.col);
+
+      // Navigate to first empty cell in the word, falling back to first cell
+      const word = this.findWordAt(position.row, position.col, direction);
+      let targetRow = position.row;
+      let targetCol = position.col;
+      if (word) {
+        const firstEmpty = word.find((cell) => !this.userInputs[cell.row][cell.col]);
+        if (firstEmpty) {
+          targetRow = firstEmpty.row;
+          targetCol = firstEmpty.col;
+        }
+      }
+
+      this.handleCellClick(targetRow, targetCol);
       this.currentDirection = direction;
       this.currentClueNumber = clueNum;
       if (!this.isMobileDevice) {
-        const input = this.getInputAt(position.row, position.col);
+        const input = this.getInputAt(targetRow, targetCol);
         if (input) input.focus();
       }
       this.highlightClue(clueNum);
@@ -219,23 +246,42 @@
     };
 
     proto.navigateToPreviousClue = function navigateToPreviousClue() {
-      const allClues = this.getAllCluesOrdered();
-      if (allClues.length === 0) return;
+      const dirClues = this.getCluesForDirection(this.currentDirection);
+      if (dirClues.length === 0) return;
       const currentClueNum = this.getCurrentClueNumber();
-      if (!currentClueNum) return this.navigateToClue(allClues[0].num, allClues[0].direction);
-      const currentIndex = allClues.findIndex((c) => c.num === currentClueNum && c.direction === this.currentDirection);
-      const targetClue = currentIndex > 0 ? allClues[currentIndex - 1] : allClues[allClues.length - 1];
-      if (targetClue) this.navigateToClue(targetClue.num, targetClue.direction);
+      if (!currentClueNum) {
+        const last = dirClues[dirClues.length - 1];
+        return this.navigateToClue(last.num, last.direction);
+      }
+      const currentIndex = dirClues.findIndex((c) => c.num === currentClueNum && c.direction === this.currentDirection);
+      // Skip fully-filled clues; fall back to simple prev if all are filled
+      for (let step = 1; step < dirClues.length; step++) {
+        const idx = (currentIndex - step + dirClues.length) % dirClues.length;
+        if (!this.isWordFullyFilled(dirClues[idx].num, this.currentDirection)) {
+          return this.navigateToClue(dirClues[idx].num, dirClues[idx].direction);
+        }
+      }
+      const prevIdx = (currentIndex - 1 + dirClues.length) % dirClues.length;
+      this.navigateToClue(dirClues[prevIdx].num, dirClues[prevIdx].direction);
     };
 
     proto.navigateToNextClue = function navigateToNextClue() {
-      const allClues = this.getAllCluesOrdered();
-      if (allClues.length === 0) return;
+      const dirClues = this.getCluesForDirection(this.currentDirection);
+      if (dirClues.length === 0) return;
       const currentClueNum = this.getCurrentClueNumber();
-      if (!currentClueNum) return this.navigateToClue(allClues[0].num, allClues[0].direction);
-      const currentIndex = allClues.findIndex((c) => c.num === currentClueNum && c.direction === this.currentDirection);
-      const targetClue = currentIndex >= 0 && currentIndex < allClues.length - 1 ? allClues[currentIndex + 1] : allClues[0];
-      if (targetClue) this.navigateToClue(targetClue.num, targetClue.direction);
+      if (!currentClueNum) {
+        return this.navigateToClue(dirClues[0].num, dirClues[0].direction);
+      }
+      const currentIndex = dirClues.findIndex((c) => c.num === currentClueNum && c.direction === this.currentDirection);
+      // Skip fully-filled clues; fall back to simple next if all are filled
+      for (let step = 1; step < dirClues.length; step++) {
+        const idx = (currentIndex + step) % dirClues.length;
+        if (!this.isWordFullyFilled(dirClues[idx].num, this.currentDirection)) {
+          return this.navigateToClue(dirClues[idx].num, dirClues[idx].direction);
+        }
+      }
+      const nextIdx = (currentIndex + 1) % dirClues.length;
+      this.navigateToClue(dirClues[nextIdx].num, dirClues[nextIdx].direction);
     };
 
     proto.scrollToGrid = function scrollToGrid() {

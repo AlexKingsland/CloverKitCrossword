@@ -1016,7 +1016,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, var(--cw-accent-light, #b8d4f1) 0%, var(--cw-accent, #a8c7e7) 100%);
+  background: var(--cw-accent-light, #b8d4f1);
   padding: 5px 8px;
   gap: 6px;
   border-bottom: 1px solid var(--cw-accent-dark, #93b8da);
@@ -1460,7 +1460,7 @@
 
 .crossword-container.dark-mode ~ .mobile-keyboard .keyboard-clue-bar,
 .crossword-container.dark-mode .mobile-keyboard .keyboard-clue-bar {
-  background: linear-gradient(180deg, var(--cw-accent-dark, #1a3352) 0%, var(--cw-accent-darker, #162a42) 100%);
+  background: var(--cw-accent-dark, #1a3352);
   border-bottom-color: var(--cw-accent-darker, #0f1f30);
 }
 

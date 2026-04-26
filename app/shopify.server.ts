@@ -19,6 +19,12 @@ const shopify = shopifyApp({
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
+  hooks: {
+    afterAuth: async ({ session, redirect }) => {
+      shopify.registerWebhooks({ session });
+      return redirect("/app/pricing");
+    },
+  },
 });
 
 export default shopify;

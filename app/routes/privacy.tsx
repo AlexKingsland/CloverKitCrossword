@@ -1,3 +1,14 @@
+import type { LoaderFunctionArgs } from "react-router";
+import { redirect } from "react-router";
+
+export const loader = ({ request }: LoaderFunctionArgs) => {
+  const host = new URL(request.url).hostname;
+  if (host !== "cloverkitstudio.com") {
+    return redirect("https://cloverkitstudio.com/privacy", 301);
+  }
+  return null;
+};
+
 export default function PrivacyPolicy() {
   return (
     <div style={styles.page}>

@@ -78,7 +78,7 @@
       this.boundOrientationHandler = this.updateMobileOrientationState.bind(this);
 
       // Settings state (persisted in localStorage)
-      this.skipFilledLetters = false;
+      this.skipFilledLetters = true;
       this.darkMode = false;
       this.loadSettings();
 
@@ -487,14 +487,10 @@
           return;
         case 'Tab': {
           e.preventDefault();
-          const nextCell = this.findNextAnswerCell(row, col, e.shiftKey);
-          if (nextCell) {
-            const nextInput = this.getInputAt(nextCell.row, nextCell.col);
-            if (nextInput) {
-              nextInput.focus();
-              this.handleCellClick(nextCell.row, nextCell.col);
-              nextInput.select();
-            }
+          if (e.shiftKey) {
+            this.navigateToPreviousClue();
+          } else {
+            this.navigateToNextClue();
           }
           return;
         }
