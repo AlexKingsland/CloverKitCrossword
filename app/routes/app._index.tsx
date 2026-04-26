@@ -6,14 +6,37 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const shopRecord = await prisma.shop.findUnique({
     where: { shop: session.shop },
   });
+
+  let isThemeCompatible = true;
+  try {
+    const themeRes = await admin.graphql(`
+      query {
+        themes(first: 5, roles: [MAIN]) {
+          nodes {
+            files(filenames: ["templates/index.json"]) {
+              nodes { filename }
+            }
+          }
+        }
+      }
+    `);
+    const themeData = await themeRes.json();
+    const mainTheme = themeData.data?.themes?.nodes?.[0];
+    isThemeCompatible = (mainTheme?.files?.nodes?.length ?? 0) > 0;
+  } catch {
+    // If the check fails, assume compatible rather than showing a false warning
+    isThemeCompatible = true;
+  }
+
   return {
     hasActivePlan: !!shopRecord?.plan,
     plan: shopRecord?.plan ?? null,
     shop: session.shop,
+    isThemeCompatible,
   };
 };
 
@@ -169,7 +192,7 @@ function NoPlanModal({ onClose, onGoToPricing }: { onClose: () => void; onGoToPr
 }
 
 export default function Index() {
-  const { hasActivePlan, plan, shop } = useLoaderData<typeof loader>();
+  const { hasActivePlan, plan, shop, isThemeCompatible } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [showNoPlanModal, setShowNoPlanModal] = useState(false);
 
@@ -178,9 +201,12 @@ export default function Index() {
       setShowNoPlanModal(true);
       return;
     }
-    // Deep-link merchant to their theme customiser
     const shopHandle = shop.replace(".myshopify.com", "");
-    open(`https://admin.shopify.com/store/${shopHandle}/themes`, "_top");
+    const extensionUid = "6263fa03-49d8-1a6c-ab29-5b13f788816d73ef0967";
+    open(
+      `https://admin.shopify.com/store/${shopHandle}/themes/current/editor?addAppBlockId=${extensionUid}/crossword-puzzle&target=newAppsSection`,
+      "_top"
+    );
   };
 
   return (
@@ -388,6 +414,40 @@ export default function Index() {
           </div>
         </div>
 
+        {/* ── Theme compatibility warning ───────────────────────────────── */}
+        {!isThemeCompatible && (
+          <div
+            style={{
+              background: "#fff4e5",
+              border: "1px solid #f5a623",
+              borderRadius: "10px",
+              padding: "16px 20px",
+              marginBottom: "24px",
+              display: "flex",
+              gap: "12px",
+              alignItems: "flex-start",
+            }}
+          >
+            <span style={{ fontSize: "20px", flexShrink: 0 }}>⚠️</span>
+            <div>
+              <div style={{ fontSize: "14px", fontWeight: 600, color: "#202223", marginBottom: "4px" }}>
+                Your current theme may not support app blocks
+              </div>
+              <div style={{ fontSize: "14px", color: "#6d7175", lineHeight: 1.55 }}>
+                CloverKit Crossword requires an Online Store 2.0 theme. Your active theme appears to use the legacy format.
+                To use this app, switch to a 2.0-compatible theme such as Dawn, Craft, or Sense in your{" "}
+                <a
+                  href={`https://admin.shopify.com/store/${shop.replace(".myshopify.com", "")}/themes`}
+                  target="_top"
+                  style={{ color: "#008060", fontWeight: 600 }}
+                >
+                  theme library
+                </a>.
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── Getting started ───────────────────────────────────────────── */}
         <div
           style={{
@@ -425,7 +485,7 @@ export default function Index() {
               {
                 n: 2,
                 title: "Add the block to your theme",
-                desc: 'In your Shopify admin go to Online Store → Themes → Customise, then add the "Crossword Puzzle" block to any section.',
+                desc: 'Click below to open your theme editor. Add the "Crossword Puzzle" block to any page — it works on all Online Store 2.0 theme templates including the home page, product pages, and custom pages.',
                 action: { label: "Open theme editor", onClick: handleAddToTheme },
               },
               {
