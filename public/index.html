@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crossword — Make Your Brand Playable</title>
+<link rel="icon" type="image/png" href="/logo.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=Outfit:wght@300;400;500;600&display=swap');
+
+  :root {
+    --ink: #0F0F0F;
+    --white: #FFFFFF;
+    --cream: #FAFAF8;
+    --gray-100: #F5F5F3;
+    --gray-200: #E8E6E3;
+    --gray-400: #A8A29E;
+    --gray-600: #6B6560;
+    --accent: #1C1917;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    color: var(--ink);
+    background: var(--white);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .nav-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--ink);
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 1px;
+    padding: 4px;
+    overflow: hidden;
+  }
+  .logo-icon .lc { border-radius: 1px; }
+  .logo-icon .lc.w { background: var(--white); }
+  .logo-icon .lc.b { background: transparent; }
+  .logo-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--gray-600);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    background: var(--ink) !important;
+    color: var(--white) !important;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600 !important;
+    transition: opacity 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 160px 32px 100px;
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .hero-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-600);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    padding: 6px 16px;
+    border-radius: 99px;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 5.5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .hero p {
+    font-size: clamp(16px, 2vw, 19px);
+    color: var(--gray-600);
+    font-weight: 300;
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto 36px;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--ink);
+    color: var(--white);
+    text-decoration: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+  .hero-cta:hover { opacity: 0.85; }
+  .hero-cta .arrow { font-size: 18px; }
+  .hero-sub {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--gray-400);
+    font-weight: 400;
+  }
+
+  /* ─── SCREENSHOT ─── */
+  .screenshot-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+  .screenshot-frame {
+    background: var(--ink);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.12);
+    position: relative;
+  }
+  .screenshot-bar {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .screenshot-bar .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+  }
+  .screenshot-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Mock crossword in screenshot */
+  .mock-store {
+    width: 100%;
+    height: 100%;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5%;
+  }
+  .mock-store-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3%;
+    padding-bottom: 2%;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .mock-store-name {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(10px, 1.6vw, 18px);
+    font-weight: 800;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .mock-store-nav-links {
+    display: flex;
+    gap: clamp(8px, 1.5vw, 20px);
+  }
+  .mock-store-nav-links span {
+    font-size: clamp(7px, 0.9vw, 12px);
+    color: var(--gray-400);
+    font-weight: 400;
+  }
+  .mock-banner {
+    width: 100%;
+    height: 18%;
+    background: var(--gray-100);
+    border-radius: 8px;
+    margin-bottom: 3%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mock-banner-text {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(10px, 1.8vw, 22px);
+    color: var(--gray-400);
+    font-weight: 600;
+  }
+  .mock-crossword-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(4px, 0.8vw, 10px);
+  }
+  .mock-crossword-title {
+    font-size: clamp(7px, 0.8vw, 11px);
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .mock-grid {
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    gap: clamp(1px, 0.3vw, 3px);
+  }
+  .mock-grid .mg {
+    width: clamp(16px, 3vw, 38px);
+    aspect-ratio: 1;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: clamp(7px, 1.2vw, 16px);
+    font-weight: 700;
+  }
+  .mg.mw { background: var(--gray-100); color: var(--ink); }
+  .mg.mg-gold { background: #FDE68A; color: var(--ink); }
+  .mg.me { background: transparent; }
+  .mock-clue {
+    font-size: clamp(5px, 0.6vw, 9px);
+    color: var(--gray-400);
+    font-style: italic;
+  }
+
+  .screenshot-caption {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--gray-400);
+    font-style: italic;
+  }
+
+  /* ─── FEATURES ─── */
+  .features {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 80px 32px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .features-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .features-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(24px, 3.5vw, 36px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+  .features-header p {
+    color: var(--gray-600);
+    font-size: 16px;
+    font-weight: 300;
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .feature-item {
+    text-align: center;
+    padding: 24px 16px;
+  }
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--gray-100);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin: 0 auto 14px;
+  }
+  .feature-item h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .feature-item p {
+    font-size: 14px;
+    color: var(--gray-600);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .how {
+    background: var(--gray-100);
+    padding: 80px 32px;
+  }
+  .how-inner {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  .how-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .how-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(24px, 3.5vw, 36px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+  .how-header p {
+    color: var(--gray-600);
+    font-size: 16px;
+    font-weight: 300;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .step {
+    text-align: center;
+  }
+  .step-num {
+    width: 40px;
+    height: 40px;
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 16px;
+    margin: 0 auto 14px;
+  }
+  .step h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .step p {
+    font-size: 14px;
+    color: var(--gray-600);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* ─── PRICING ─── */
+  .pricing {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 32px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .pricing-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(24px, 3.5vw, 36px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+  .pricing-header p {
+    color: var(--gray-600);
+    font-size: 16px;
+    font-weight: 300;
+  }
+  .pricing-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .price-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 28px;
+    background: var(--white);
+    position: relative;
+  }
+  .price-card.featured {
+    border-color: var(--ink);
+    border-width: 2px;
+  }
+  .price-card .pc-badge {
+    position: absolute;
+    top: -11px;
+    right: 20px;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 12px;
+    border-radius: 6px;
+  }
+  .price-card .pc-tier {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+  }
+  .price-card .pc-price {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .price-card .pc-price span {
+    font-size: 14px;
+    color: var(--gray-400);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+  }
+  .price-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .price-card ul li {
+    font-size: 13px;
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+  }
+  .price-card ul li .ck {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--gray-200);
+    padding: 48px 32px;
+    text-align: center;
+  }
+  .footer-inner {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  .footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .footer-logo .logo-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    padding: 3px;
+  }
+  .footer-logo .logo-name {
+    font-size: 15px;
+  }
+  .footer-tagline {
+    font-size: 14px;
+    color: var(--gray-600);
+    font-weight: 300;
+    margin-bottom: 16px;
+  }
+  .footer-email {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .footer-email a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .footer-email a:hover { opacity: 0.7; }
+  .footer-copy {
+    margin-top: 24px;
+    font-size: 12px;
+    color: var(--gray-400);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+    .feature-grid, .steps, .pricing-cards { grid-template-columns: 1fr; }
+    .hero { padding: 120px 24px 60px; }
+    .features, .pricing { padding: 60px 24px; }
+    .how { padding: 60px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <img src="/logo.png" alt="Crossword" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
+      <span class="logo-name">Crossword</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#" class="nav-cta">Install on Shopify</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-badge">Shopify App</div>
+  <h1>Make your brand playable</h1>
+  <p>A daily crossword puzzle section for your Shopify store. New puzzles update automatically every day. Free forever.</p>
+  <a href="#" class="hero-cta">Install on Shopify <span class="arrow">→</span></a>
+  <div class="hero-sub">Free to install. No credit card required.</div>
+</section>
+
+<!-- ─── SCREENSHOT ─── -->
+<section class="screenshot-section">
+  <div class="screenshot-frame">
+    <div class="screenshot-bar">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="screenshot-img">
+      <div class="mock-store">
+        <div class="mock-store-header">
+          <div class="mock-store-name">Your Store</div>
+          <div class="mock-store-nav-links">
+            <span>Shop</span>
+            <span>Collections</span>
+            <span>About</span>
+            <span>Contact</span>
+          </div>
+        </div>
+        <div class="mock-banner">
+          <div class="mock-banner-text">Your hero banner</div>
+        </div>
+        <div class="mock-crossword-area">
+          <div class="mock-crossword-title">Today's Crossword</div>
+          <div class="mock-grid">
+            <div class="mg mg-gold">S</div><div class="mg mw">H</div><div class="mg mw">O</div><div class="mg mw">P</div><div class="mg me"></div>
+            <div class="mg mw">T</div><div class="mg me"></div><div class="mg me"></div><div class="mg mg-gold">U</div><div class="mg mw">N</div>
+            <div class="mg mw">I</div><div class="mg me"></div><div class="mg me"></div><div class="mg mw">Z</div><div class="mg me"></div>
+            <div class="mg mg-gold">L</div><div class="mg mw">O</div><div class="mg mw">V</div><div class="mg mw">E</div><div class="mg me"></div>
+            <div class="mg mw">E</div><div class="mg me"></div><div class="mg me"></div><div class="mg me"></div><div class="mg mw">D</div>
+          </div>
+          <div class="mock-clue">3 Across: One of a kind (6)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="screenshot-caption">Replace with your actual app screenshot</p>
+</section>
+
+<!-- ─── FEATURES ─── -->
+<section class="features" id="features">
+  <div class="features-header">
+    <h2>Everything you need. Nothing you don't.</h2>
+    <p>Simple, fun, and built to stay out of your way.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-item">
+      <div class="feature-icon">🔄</div>
+      <h3>Auto-updating daily</h3>
+      <p>A new puzzle publishes to your store every 24 hours. No effort from you.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🎯</div>
+      <h3>Three difficulty levels</h3>
+      <p>Easy, Medium, or Hard. Pick the challenge that fits your audience.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🎨</div>
+      <h3>Matches your brand</h3>
+      <p>Customize accent colors so the puzzle feels native to your store.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">✨</div>
+      <h3>Non-intrusive design</h3>
+      <p>Hidden behind frosted glass until a customer clicks play.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">📱</div>
+      <h3>Works everywhere</h3>
+      <p>Fully responsive on desktop, tablet, and mobile.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🧩</div>
+      <h3>Quality puzzles</h3>
+      <p>Professionally crafted, never repeated, wide variety of topics.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header">
+      <h2>Up and running in 30 seconds</h2>
+      <p>Seriously. That's all it takes.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Install the app</h3>
+        <p>One click from the Shopify App Store. Free.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Drag and drop</h3>
+        <p>Add the crossword section to any page in your theme editor.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>You're done</h3>
+        <p>Pick your difficulty, customize the colors, and your crossword is live.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ─── -->
+<section class="pricing" id="pricing">
+  <div class="pricing-header">
+    <h2>Simple, honest pricing</h2>
+    <p>The puzzle is free. Analytics when you're ready.</p>
+  </div>
+  <div class="pricing-cards">
+    <div class="price-card">
+      <div class="pc-tier">Free</div>
+      <div class="pc-price">$0</div>
+      <ul>
+        <li><span class="ck">✓</span> Daily auto-published puzzles</li>
+        <li><span class="ck">✓</span> Three difficulty levels</li>
+        <li><span class="ck">✓</span> Custom accent colors</li>
+        <li><span class="ck">✓</span> Drag-and-drop install</li>
+        <li><span class="ck">✓</span> Full solver tools</li>
+        <li><span class="ck">✓</span> Mobile responsive</li>
+      </ul>
+    </div>
+    <div class="price-card featured">
+      <div class="pc-badge">Pro move</div>
+      <div class="pc-tier">Analytics</div>
+      <div class="pc-price">$1.99<span>/mo</span></div>
+      <ul>
+        <li><span class="ck">✓</span> Everything in Free</li>
+        <li><span class="ck">✓</span> Total plays & completions</li>
+        <li><span class="ck">✓</span> Daily engagement trends</li>
+        <li><span class="ck">✓</span> Average solve times</li>
+        <li><span class="ck">✓</span> Visitor interaction data</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-inner">
+    <a href="#" class="footer-logo">
+      <img src="/logo.png" alt="Crossword" style="width:24px;height:24px;border-radius:6px;object-fit:cover;">
+      <span class="logo-name">Crossword</span>
+    </a>
+    <p class="footer-tagline">Make your brand playable.</p>
+    <p class="footer-email">Need help? <a href="mailto:support@yourcrosswordapp.com">support@yourcrosswordapp.com</a></p>
+    <p class="footer-copy">&copy; 2026 Crossword. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
