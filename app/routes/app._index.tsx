@@ -484,7 +484,7 @@ export default function Index() {
               {
                 n: 2,
                 title: "Add the block to your theme",
-                desc: 'Click below to open your theme editor. Click "Add section", scroll to the Apps section, and select "Crossword Puzzle". It works on all Online Store 2.0 theme templates including the home page, product pages, and custom pages.',
+                desc: 'Click below to open your theme editor. Click "Add section", scroll to the Apps section, and select "Crossword Puzzle".',
                 action: { label: "Open theme editor", onClick: handleAddToTheme },
               },
               {
