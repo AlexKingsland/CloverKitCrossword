@@ -322,6 +322,7 @@
           downClues: data.downClues,
           answers: data.answers,
           cluePositions: data.cluePositions,
+          title: data.title || null,
         };
       } catch (error) {
         console.error('❌ Failed to load puzzle from R2:', error.message);
@@ -349,6 +350,8 @@
       this.updateCellSize();
       this.renderGrid();
       this.renderClues();
+      const themeEl = this.containerElement.querySelector('#crossword-puzzle-theme');
+      if (themeEl && this.currentPuzzle.title) themeEl.textContent = `${this.currentPuzzle.title}`;
       this.bindEvents();
       if (this.isMobileDevice) this.initMobileKeyboard();
       this._resizeHandler = () => {
