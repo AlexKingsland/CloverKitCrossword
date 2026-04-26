@@ -459,13 +459,16 @@ export default function PricingPage() {
     }
     if (fetcher.data && "showMarketingModal" in fetcher.data) {
       const shopEmail = (fetcher.data as { shopEmail: string }).shopEmail;
-      setTimeout(() => setMarketingModal({ open: true, shopEmail }), 3000);
+      setTimeout(() => setMarketingModal({ open: true, shopEmail }), 10000);
     }
   }, [fetcher.data]);
 
   useEffect(() => {
     if (fetcher.state === "idle" && modal.open) {
       setModal({ open: false });
+    }
+    if (fetcher.state === "idle" && marketingModal.open) {
+      navigate("/app");
     }
   }, [fetcher.state]);
 
