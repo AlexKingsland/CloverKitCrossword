@@ -17,6 +17,7 @@
     autocapture: false,        // don't capture every click on the merchant's storefront
     capture_pageview: false,   // we only want our explicit crossword events
     capture_performance: false, // web vitals not useful across merchant storefronts
+    disable_persistence: true, // no cookies or localStorage — events are anonymous with no persistent identifier
   });
 
   window.CloverKitAnalytics = {
