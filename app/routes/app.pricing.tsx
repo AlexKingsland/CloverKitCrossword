@@ -64,12 +64,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       where: { shop: session.shop },
       data: { customerMarketingEmail: email },
     });
-    return redirect("/app");
+    return { redirectTo: "/app" };
   }
 
   // ── Skip marketing (just go home, plan already set) ───────────────────────
   if (intent === "skip_marketing") {
-    return redirect("/app");
+    return { redirectTo: "/app" };
   }
 
   const plan = PLANS.find((p) => p.id === planId);
@@ -109,7 +109,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return { showMarketingModal: true, shopEmail };
     }
 
-    return redirect("/app");
+    return { redirectTo: "/app" };
   }
 
   // ── Upgrade to Pro ────────────────────────────────────────────────────────
@@ -460,6 +460,9 @@ export default function PricingPage() {
     if (fetcher.data && "showMarketingModal" in fetcher.data) {
       const shopEmail = (fetcher.data as { shopEmail: string }).shopEmail;
       setTimeout(() => setMarketingModal({ open: true, shopEmail }), 10000);
+    }
+    if (fetcher.data && "redirectTo" in fetcher.data) {
+      navigate(fetcher.data.redirectTo as string);
     }
   }, [fetcher.data]);
 

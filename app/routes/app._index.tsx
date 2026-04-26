@@ -202,9 +202,8 @@ export default function Index() {
       return;
     }
     const shopHandle = shop.replace(".myshopify.com", "");
-    const extensionUid = "6263fa03-49d8-1a6c-ab29-5b13f788816d73ef0967";
     open(
-      `https://admin.shopify.com/store/${shopHandle}/themes/current/editor?addAppBlockId=${extensionUid}/crossword-puzzle&target=newAppsSection`,
+      `https://admin.shopify.com/store/${shopHandle}/themes/current/editor`,
       "_top"
     );
   };
@@ -485,7 +484,7 @@ export default function Index() {
               {
                 n: 2,
                 title: "Add the block to your theme",
-                desc: 'Click below to open your theme editor. Add the "Crossword Puzzle" block to any page — it works on all Online Store 2.0 theme templates including the home page, product pages, and custom pages.',
+                desc: 'Click below to open your theme editor. Click "Add section", scroll to the Apps section, and select "Crossword Puzzle". It works on all Online Store 2.0 theme templates including the home page, product pages, and custom pages.',
                 action: { label: "Open theme editor", onClick: handleAddToTheme },
               },
               {
