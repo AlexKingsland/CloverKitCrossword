@@ -1,8 +1,7 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useRouteError, useNavigate } from "react-router";
+import { Outlet, useLoaderData, useRouteError, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { useEffect } from "react";
 
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -57,36 +56,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
-  // Pages that must never redirect — they handle their own access state.
   const isExempt =
     pathname.startsWith("/app/pricing") ||
-    pathname === "/app" ||
-    pathname === "/app/" ||
     pathname.startsWith("/app/analytics");
-
-  let requiresPricing = false;
 
   if (!isExempt) {
     const shopRecord = await prisma.shop.findUnique({
       where: { shop: session.shop },
     });
-    // Only redirect when there is genuinely no plan at all.
-    requiresPricing = !shopRecord?.plan;
+    if (!shopRecord?.plan) {
+      return redirect("/app/pricing");
+    }
   }
 
   // eslint-disable-next-line no-undef
-  return { apiKey: process.env.SHOPIFY_API_KEY || "", requiresPricing };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
 export default function App() {
-  const { apiKey, requiresPricing } = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (requiresPricing) {
-      navigate("/app/pricing");
-    }
-  }, [requiresPricing, navigate]);
+  const { apiKey } = useLoaderData<typeof loader>();
 
   return (
     <AppProvider embedded apiKey={apiKey}>
