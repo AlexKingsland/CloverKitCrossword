@@ -335,6 +335,8 @@ function MarketingModal({
   const [email, setEmail] = useState(shopEmail);
 
   return (
+    <>
+      <style>{`@keyframes ck-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     <div
       style={{
         position: "fixed",
@@ -344,6 +346,7 @@ function MarketingModal({
         alignItems: "center",
         justifyContent: "center",
         zIndex: 9999,
+        animation: "ck-fade-in 0.35s ease",
       }}
     >
       <div
@@ -441,6 +444,7 @@ function MarketingModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -459,7 +463,7 @@ export default function PricingPage() {
     }
     if (fetcher.data && "showMarketingModal" in fetcher.data) {
       const shopEmail = (fetcher.data as { shopEmail: string }).shopEmail;
-      setTimeout(() => setMarketingModal({ open: true, shopEmail }), 10000);
+      setTimeout(() => setMarketingModal({ open: true, shopEmail }), 5000);
     }
     if (fetcher.data && "redirectTo" in fetcher.data) {
       navigate(fetcher.data.redirectTo as string);
