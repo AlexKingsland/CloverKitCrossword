@@ -249,10 +249,10 @@ export default function Index() {
                 style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #c9cccf", fontSize: "14px", marginBottom: "20px", boxSizing: "border-box" }}
               />
               <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-                <button onClick={() => { fetcher.submit({ intent: "skip_marketing" }, { method: "POST", action: "/app/pricing" }); }} style={{ padding: "8px 18px", borderRadius: "6px", border: "1px solid #c9cccf", background: "#fff", fontSize: "14px", cursor: "pointer", color: "#6d7175" }}>
+                <button onClick={() => { setMarketingModal({ open: false }); fetcher.submit({ intent: "skip_marketing" }, { method: "POST", action: "/app/pricing" }); }} style={{ padding: "8px 18px", borderRadius: "6px", border: "1px solid #c9cccf", background: "#fff", fontSize: "14px", cursor: "pointer", color: "#6d7175" }}>
                   No thanks
                 </button>
-                <button onClick={() => { const email = (document.getElementById("ck-marketing-email") as HTMLInputElement).value; fetcher.submit({ intent: "save_marketing", email }, { method: "POST", action: "/app/pricing" }); }} style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "#008060", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}>
+                <button onClick={() => { const email = (document.getElementById("ck-marketing-email") as HTMLInputElement).value; setMarketingModal({ open: false }); fetcher.submit({ intent: "save_marketing", email }, { method: "POST", action: "/app/pricing" }); }} style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "#008060", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}>
                   Yes, keep me updated
                 </button>
               </div>

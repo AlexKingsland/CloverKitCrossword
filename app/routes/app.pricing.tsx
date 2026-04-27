@@ -126,7 +126,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       variables: {
         name: `CloverKit Crossword — ${plan.name}`,
         returnUrl: `${process.env.SHOPIFY_APP_URL}/app/billing/callback?shop=${session.shop}`,
-        test: process.env.NODE_ENV !== "production",
+        test: process.env.NODE_ENV !== "production" || process.env.BILLING_TEST === "true",
         lineItems: [
           {
             plan: {
