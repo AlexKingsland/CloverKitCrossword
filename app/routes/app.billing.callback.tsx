@@ -42,6 +42,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect("/app/pricing");
   }
 
+  if (subscription.status !== "ACTIVE") {
+    // Merchant declined or charge expired — fall back to free
+    await prisma.shop.upsert({
+      where: { shop },
+      create: { shop, plan: "free", subscriptionId: null, subscriptionStatus: null },
+      update: { plan: "free", subscriptionId: null, subscriptionStatus: null },
+    });
+    return redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app/pricing`);
+  }
+
   const plan = PLAN_BY_SUBSCRIPTION_NAME[subscription.name] ?? "pro";
 
   await prisma.shop.upsert({

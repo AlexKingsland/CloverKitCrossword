@@ -40,13 +40,33 @@ const PLANS = [
 const PLAN_RANK: Record<string, number> = { free: 0, pro: 1 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  const shopRecord = await prisma.shop.findUnique({
+  const { admin, session } = await authenticate.admin(request);
+  let shopRecord = await prisma.shop.findUnique({
     where: { shop: session.shop },
   });
-  const plan = shopRecord?.plan ?? null;
+
+  // If a pending subscription exists, verify with Shopify and clean up if not ACTIVE
+  if (shopRecord?.subscriptionStatus === "pending" && shopRecord.subscriptionId) {
+    const res = await admin.graphql(
+      `#graphql
+      query getSubscription($id: ID!) {
+        node(id: $id) {
+          ... on AppSubscription { id status }
+        }
+      }`,
+      { variables: { id: shopRecord.subscriptionId } },
+    );
+    const sub = (await res.json()).data?.node;
+    if (!sub || sub.status !== "ACTIVE") {
+      shopRecord = await prisma.shop.update({
+        where: { shop: session.shop },
+        data: { plan: "free", subscriptionId: null, subscriptionStatus: null },
+      });
+    }
+  }
+
   return {
-    currentPlan: plan,
+    currentPlan: shopRecord?.plan ?? null,
     plans: PLANS,
   };
 };
@@ -152,7 +172,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     where: { shop: session.shop },
     create: {
       shop: session.shop,
-      plan: "free",
       subscriptionId: result.appSubscription.id,
       subscriptionStatus: "pending",
     },
