@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "56a812a0244d8c7d95177d83c68451d3"
-name = "cloverkit-crossword"
+name = "Crossword"
 application_url = "https://app.cloverkitstudio.com/app"
 embedded = true
 
