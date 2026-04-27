@@ -23,6 +23,18 @@ api_version = "2026-04"
   topics = [ "app_subscriptions/update" ]
   uri = "https://app.cloverkitstudio.com/webhooks/app/subscriptions_update"
 
+  [[webhooks.subscriptions]]
+  topics = [ "customers/data_request" ]
+  uri = "https://app.cloverkitstudio.com/webhooks/customers/data_request"
+
+  [[webhooks.subscriptions]]
+  topics = [ "customers/redact" ]
+  uri = "https://app.cloverkitstudio.com/webhooks/customers/redact"
+
+  [[webhooks.subscriptions]]
+  topics = [ "shop/redact" ]
+  uri = "https://app.cloverkitstudio.com/webhooks/shop/redact"
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_themes"
