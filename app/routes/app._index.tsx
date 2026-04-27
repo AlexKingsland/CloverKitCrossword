@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData, useNavigate, useFetcher } from "react-router";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
@@ -194,7 +194,23 @@ function NoPlanModal({ onClose, onGoToPricing }: { onClose: () => void; onGoToPr
 export default function Index() {
   const { hasActivePlan, plan, shop, isThemeCompatible } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  const fetcher = useFetcher();
   const [showNoPlanModal, setShowNoPlanModal] = useState(false);
+  const [marketingModal, setMarketingModal] = useState<{ open: false } | { open: true; shopEmail: string }>({ open: false });
+
+  useEffect(() => {
+    const shopEmail = sessionStorage.getItem("ck_marketing_modal");
+    if (!shopEmail) return;
+    sessionStorage.removeItem("ck_marketing_modal");
+    const timer = setTimeout(() => setMarketingModal({ open: true, shopEmail }), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && marketingModal.open) {
+      navigate("/app");
+    }
+  }, [fetcher.state]);
 
   const handleAddToTheme = () => {
     if (!hasActivePlan) {
@@ -215,6 +231,34 @@ export default function Index() {
           onClose={() => setShowNoPlanModal(false)}
           onGoToPricing={() => { setShowNoPlanModal(false); navigate("/app/pricing"); }}
         />
+      )}
+
+      {marketingModal.open && (
+        <>
+          <style>{`@keyframes ck-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, animation: "ck-fade-in 0.35s ease" }}>
+            <div style={{ background: "#fff", borderRadius: "12px", padding: "28px 32px", maxWidth: "440px", width: "100%", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+              <div style={{ fontSize: "17px", fontWeight: 700, color: "#202223", marginBottom: "12px" }}>Stay in the loop</div>
+              <p style={{ fontSize: "14px", color: "#6d7175", margin: "0 0 18px 0", lineHeight: 1.5 }}>
+                Would you like to receive product updates and tips from CloverKit? We'll send them to the email below.
+              </p>
+              <input
+                type="email"
+                defaultValue={marketingModal.shopEmail}
+                id="ck-marketing-email"
+                style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #c9cccf", fontSize: "14px", marginBottom: "20px", boxSizing: "border-box" }}
+              />
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button onClick={() => { fetcher.submit({ intent: "skip_marketing" }, { method: "POST", action: "/app/pricing" }); }} style={{ padding: "8px 18px", borderRadius: "6px", border: "1px solid #c9cccf", background: "#fff", fontSize: "14px", cursor: "pointer", color: "#6d7175" }}>
+                  No thanks
+                </button>
+                <button onClick={() => { const email = (document.getElementById("ck-marketing-email") as HTMLInputElement).value; fetcher.submit({ intent: "save_marketing", email }, { method: "POST", action: "/app/pricing" }); }} style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "#008060", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}>
+                  Yes, keep me updated
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       <s-page heading="">

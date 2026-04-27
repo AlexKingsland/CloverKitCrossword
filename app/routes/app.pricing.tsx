@@ -463,7 +463,8 @@ export default function PricingPage() {
     }
     if (fetcher.data && "showMarketingModal" in fetcher.data) {
       const shopEmail = (fetcher.data as { shopEmail: string }).shopEmail;
-      setTimeout(() => setMarketingModal({ open: true, shopEmail }), 5000);
+      sessionStorage.setItem("ck_marketing_modal", shopEmail);
+      navigate("/app");
     }
     if (fetcher.data && "redirectTo" in fetcher.data) {
       navigate(fetcher.data.redirectTo as string);
