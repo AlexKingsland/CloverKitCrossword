@@ -24,16 +24,17 @@ api_version = "2026-04"
   uri = "https://app.cloverkitstudio.com/webhooks/app/subscriptions_update"
 
   [[webhooks.subscriptions]]
-  topics = [ "customers/data_request" ]
+  compliance_topics = [ "customers/data_request" ]
   uri = "https://app.cloverkitstudio.com/webhooks/customers/data_request"
 
   [[webhooks.subscriptions]]
-  topics = [ "customers/redact" ]
+  compliance_topics = [ "customers/redact" ]
   uri = "https://app.cloverkitstudio.com/webhooks/customers/redact"
 
   [[webhooks.subscriptions]]
-  topics = [ "shop/redact" ]
+  compliance_topics = [ "shop/redact" ]
   uri = "https://app.cloverkitstudio.com/webhooks/shop/redact"
+
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
