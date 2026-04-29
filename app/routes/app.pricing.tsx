@@ -57,7 +57,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       { variables: { id: shopRecord.subscriptionId } },
     );
     const sub = (await res.json()).data?.node;
-    if (!sub || sub.status !== "ACTIVE") {
+    if (!sub || sub.status === "DECLINED" || sub.status === "EXPIRED") {
       shopRecord = await prisma.shop.update({
         where: { shop: session.shop },
         data: { plan: "free", subscriptionId: null, subscriptionStatus: null },
@@ -500,6 +500,10 @@ export default function PricingPage() {
   }, [fetcher.state]);
 
   const isSubmitting = fetcher.state !== "idle";
+  const submittedPlanId = isSubmitting
+    ? (fetcher.formData?.get("plan") as string | null) ?? null
+    : null;
+  const displayPlan = submittedPlanId ?? currentPlan;
 
   const handlePlanClick = (planId: string) => {
     if (currentPlan === null) {
@@ -526,7 +530,7 @@ export default function PricingPage() {
     }
   };
 
-  const noPlan = currentPlan === null;
+  const noPlan = displayPlan === null;
 
   return (
     <>
@@ -575,9 +579,9 @@ export default function PricingPage() {
           }}
         >
           {plans.map((plan) => {
-            const isCurrent = currentPlan === plan.id;
-            const isUpgrade = currentPlan !== null && PLAN_RANK[plan.id] > PLAN_RANK[currentPlan];
-            const isDowngrade = currentPlan !== null && PLAN_RANK[plan.id] < PLAN_RANK[currentPlan];
+            const isCurrent = displayPlan === plan.id;
+            const isUpgrade = displayPlan !== null && PLAN_RANK[plan.id] > PLAN_RANK[displayPlan];
+            const isDowngrade = displayPlan !== null && PLAN_RANK[plan.id] < PLAN_RANK[displayPlan];
 
             let buttonLabel: string;
             if (isCurrent) {
