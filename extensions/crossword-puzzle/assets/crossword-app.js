@@ -46,6 +46,8 @@
       this.darkModeToggle = rootElement.querySelector('#setting-dark-mode');
       this.skipFilledToggle = rootElement.querySelector('#setting-skip-filled');
       this.nextPuzzleCountdown = rootElement.querySelector('#next-puzzle-countdown');
+      this.settingsTodayTheme = rootElement.querySelector('#settings-today-theme');
+      this.settingsTomorrowTheme = rootElement.querySelector('#settings-tomorrow-theme');
 
       this.difficulty = rootElement.dataset.difficulty || 'medium';
 
@@ -350,8 +352,10 @@
       this.updateCellSize();
       this.renderGrid();
       this.renderClues();
-      const themeEl = this.containerElement.querySelector('#crossword-puzzle-theme');
-      if (themeEl && this.currentPuzzle.title) themeEl.textContent = `${this.currentPuzzle.title}`;
+      if (this.settingsTodayTheme && this.currentPuzzle.title) {
+        this.settingsTodayTheme.textContent = this.currentPuzzle.title;
+      }
+      this.fetchTomorrowTheme();
       this.bindEvents();
       if (this.isMobileDevice) this.initMobileKeyboard();
       this._resizeHandler = () => {
@@ -362,6 +366,18 @@
       this.syncCluesHeight();
       // Timer starts on first expand, not at load time, so two collapsed
       // crosswords on the same page don't share an identical elapsed time.
+    }
+
+    async fetchTomorrowTheme() {
+      if (!this.settingsTomorrowTheme) return;
+      try {
+        const title = await window.CrosswordDataService.fetchTomorrowTitle(this.difficulty);
+        if (title) {
+          this.settingsTomorrowTheme.textContent = `Tomorrow: ${title}`;
+        }
+      } catch (_) {
+        // silently ignore — tomorrow's puzzle may not be generated yet
+      }
     }
 
     bindEvents() {

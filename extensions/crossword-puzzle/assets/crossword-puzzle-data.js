@@ -14,6 +14,21 @@
     return now.toISOString().split('T')[0];
   }
 
+  function getTomorrowUTC() {
+    const now = new Date();
+    now.setUTCDate(now.getUTCDate() + 1);
+    return now.toISOString().split('T')[0];
+  }
+
+  async function fetchTomorrowTitle(difficulty) {
+    const tomorrow = getTomorrowUTC();
+    const url = `https://${R2_PUBLIC_HOST}/${BASE_PATH}/${difficulty}/${tomorrow}.json`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.title || null;
+  }
+
   async function fetchPuzzle(difficulty, debug = () => {}) {
     const today = getTodayUTC();
     const url = `https://${R2_PUBLIC_HOST}/${BASE_PATH}/${difficulty}/${today}.json`;
@@ -47,5 +62,6 @@
 
   window.CrosswordDataService = {
     fetchPuzzle,
+    fetchTomorrowTitle,
   };
 })();

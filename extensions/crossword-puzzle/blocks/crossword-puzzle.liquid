@@ -58,7 +58,6 @@
   </button>
 
   <h2 class="crossword-title" id="crossword-title" role="button" tabindex="0" style="cursor: pointer;">{{ block.settings.title }}</h2>
-  <p class="crossword-puzzle-theme" id="crossword-puzzle-theme"></p>
 
   <!-- ===== TOOLBAR BAR ===== -->
   <div class="crossword-toolbar" id="crossword-toolbar">
@@ -237,9 +236,16 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-label">Today's theme</span>
+            <span class="settings-row-desc" id="settings-today-theme">Loading…</span>
+          </div>
+        </div>
         <div class="settings-countdown">
           <div class="settings-countdown-label">Next puzzle change in</div>
           <div class="settings-countdown-time" id="next-puzzle-countdown">--:--:--</div>
+          <div class="settings-countdown-tomorrow" id="settings-tomorrow-theme"></div>
         </div>
       </div>
     </div>
