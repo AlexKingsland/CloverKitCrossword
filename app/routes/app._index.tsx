@@ -201,8 +201,10 @@ export default function Index() {
   useEffect(() => {
     const shopEmail = sessionStorage.getItem("ck_marketing_modal");
     if (!shopEmail) return;
-    sessionStorage.removeItem("ck_marketing_modal");
-    const timer = setTimeout(() => setMarketingModal({ open: true, shopEmail }), 5000);
+    const timer = setTimeout(() => {
+      sessionStorage.removeItem("ck_marketing_modal");
+      setMarketingModal({ open: true, shopEmail });
+    }, 5000);
     return () => clearTimeout(timer);
   }, []);
 

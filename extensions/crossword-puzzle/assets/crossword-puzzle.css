@@ -135,6 +135,14 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+}
+
+@media (min-width: 901px) {
+  .crossword-grid-wrapper {
+    flex: 1 1 44%;
+    max-width: 55%;
+  }
 }
 
 /* ===== TOOLBAR BAR ===== */
@@ -393,7 +401,7 @@
 
 .crossword-clues {
   flex: 1 1 56%;
-  min-width: 420px;
+  min-width: 0;
   display: flex;
   gap: 20px;
 }
@@ -924,7 +932,7 @@
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .crossword-wrapper {
     flex-direction: column;
     gap: 20px;

@@ -147,7 +147,7 @@
       const downEl = this.containerElement.querySelector('.clues-down');
       if (!acrossEl && !downEl) return;
 
-      const isMobile = window.innerWidth <= 768;
+      const isMobile = window.innerWidth <= 900;
       if (isMobile) {
         // On mobile the layout is stacked — cap each clue column at 300px
         const mobileHeight = '300px';
