@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
       <div style={styles.container}>
         <h1 style={styles.h1}>Privacy Policy</h1>
         <p style={styles.meta}>
-          <strong>App:</strong> CloverKit Crossword&nbsp;&nbsp;|&nbsp;&nbsp;
+          <strong>App:</strong> CloverKit - Daily Crossword&nbsp;&nbsp;|&nbsp;&nbsp;
           <strong>Developer:</strong> CloverKit Studio&nbsp;&nbsp;|&nbsp;&nbsp;
           <strong>Last updated:</strong> April 2026
         </p>
@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
         <p>
           This Privacy Policy describes how CloverKit Studio ("we", "us", or
           "our") collects, uses, and handles information when you install and use
-          the <strong>CloverKit Crossword</strong> app ("the App") available on
+          the <strong>CloverKit - Daily Crossword</strong> app ("the App") available on
           the Shopify App Store.
         </p>
 
@@ -62,7 +62,7 @@ export default function PrivacyPolicy() {
 
         <h3 style={styles.h3}>Storefront engagement analytics</h3>
         <p>
-          When visitors to your store interact with the CloverKit Crossword
+          When visitors to your store interact with the CloverKit - Daily Crossword
           puzzle block, the following events are recorded for analytics purposes:
         </p>
         <ul>

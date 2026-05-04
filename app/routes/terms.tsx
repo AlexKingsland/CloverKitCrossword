@@ -15,14 +15,14 @@ export default function TermsOfService() {
       <div style={styles.container}>
         <h1 style={styles.h1}>Terms of Service</h1>
         <p style={styles.meta}>
-          <strong>App:</strong> CloverKit Crossword&nbsp;&nbsp;|&nbsp;&nbsp;
+          <strong>App:</strong> CloverKit - Daily Crossword&nbsp;&nbsp;|&nbsp;&nbsp;
           <strong>Developer:</strong> CloverKit Studio&nbsp;&nbsp;|&nbsp;&nbsp;
           <strong>Last updated:</strong> April 2026
         </p>
 
         <p>
           Please read these Terms of Service ("Terms") carefully before
-          installing or using the <strong>CloverKit Crossword</strong> app ("the
+          installing or using the <strong>CloverKit - Daily Crossword</strong> app ("the
           App"). By installing the App you agree to be bound by these Terms.
         </p>
 
@@ -36,7 +36,7 @@ export default function TermsOfService() {
 
         <h2 style={styles.h2}>2. The Service</h2>
         <p>
-          CloverKit Crossword adds a daily crossword puzzle block to your
+          CloverKit - Daily Crossword adds a daily crossword puzzle block to your
           Shopify storefront. A new puzzle is automatically published every 24
           hours. The App is offered on the following plans:
         </p>
