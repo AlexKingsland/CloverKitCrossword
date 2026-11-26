@@ -7,6 +7,13 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
+// Route all outbound fetch through QuotaGuard static proxy so Shopify sees
+// a stable IP that matches the IP allowlist in the Dev Dashboard.
+if (process.env.QUOTAGUARDSTATIC_URL) {
+  const { ProxyAgent, setGlobalDispatcher } = await import("undici");
+  setGlobalDispatcher(new ProxyAgent(process.env.QUOTAGUARDSTATIC_URL));
+}
+
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
